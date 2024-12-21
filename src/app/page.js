@@ -25,8 +25,8 @@ export default function HomePage() {
   return (
     <main className="w-full p-6 rounded">
       <section className="w-full min-h-[400px] flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800">
-          <h1 className="text-6xl font-heading">Hero Section</h1>
-          <p className="text-xl mt-4">Your hero content goes here</p>
+          <h1 className="text-4xl tracking-wide font-heading">Hey there, meet UIglow</h1>
+          <p className="text-l tracking-wider mt-4 text-center font-sans px-8">A cozy corner of the web where I share my experiments with UI components, motion design, and creative ideas. <br /> Built with love, Figma, and a sprinkle of code magic.</p>
       </section>
 
       <section className="container mx-auto px-4 py-16">

@@ -34,7 +34,7 @@ export default function AppHeader() {
                 <div className="flex items-center px-2 gap-1">
                     <h1 className='font-sans text-sm text-slate-700 dark:text-slate-400'>made by</h1>
                     <a
-                    href="https://github.com/yourusername/yourrepo"
+                    href="https://www.tonyzeb.design/"
                     target="_blank"
                     rel="noopener noreferrer"
                     >
@@ -42,7 +42,7 @@ export default function AppHeader() {
                     </a>
                 </div>
                 <a
-                    href="https://github.com/yourusername/yourrepo"
+                    href="https://github.com/tonyzebastian/uiglow"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
