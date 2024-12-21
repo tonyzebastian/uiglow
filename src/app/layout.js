@@ -27,7 +27,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${bitter.variable} ${raleway.variable}`}>
-      <body className='min-h-screen'>
+      <body>
           <div className="flex flex-col w-full max-w-[1600px] mx-auto ">
             <AppHeader />
             <div className="flex flex-row w-full">

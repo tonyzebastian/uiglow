@@ -23,25 +23,16 @@ export const metadata = {
 export default function HomePage() {
   
   return (
-    <main className="w-full p-6 rounded h-screen">
-      {/* Hero Section */}
+    <main className="w-full p-6 rounded">
       <section className="w-full min-h-[400px] flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800">
-
           <h1 className="text-6xl font-heading">Hero Section</h1>
           <p className="text-xl mt-4">Your hero content goes here</p>
-
       </section>
 
-      {/* Placeholder Rectangles Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Placeholder Rectangle 1 */}
           <div className="bg-gray-200 h-64 rounded-lg"></div>
-          
-          {/* Placeholder Rectangle 2 */}
           <div className="bg-gray-200 h-64 rounded-lg"></div>
-          
-          {/* Placeholder Rectangle 3 */}
           <div className="bg-gray-200 h-64 rounded-lg"></div>
         </div>
       </section>

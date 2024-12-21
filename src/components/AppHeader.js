@@ -2,6 +2,7 @@
 
 import { GitHub, Moon, Sun } from 'react-feather';
 import { useEffect, useState } from 'react';
+import UIGlowLogo from './Logo';
 
 export default function AppHeader() {
     const [isDark, setIsDark] = useState(false);
@@ -27,17 +28,17 @@ export default function AppHeader() {
     };
 
     return (
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 py-4 px-6 max-w-[1600px]">
-            <h1 className='font-heading'>UIGlow</h1>
+        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 py-3 px-4 max-w-[1600px]">
+            <UIGlowLogo />
             <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                    <h1>made by</h1>
+                <div className="flex items-center px-2 gap-1">
+                    <h1 className='font-sans text-sm text-slate-700 dark:text-slate-400'>made by</h1>
                     <a
                     href="https://github.com/yourusername/yourrepo"
                     target="_blank"
                     rel="noopener noreferrer"
                     >
-                        <h2 className='font-heading'>Tony Sebastian</h2>
+                        <h2 className='font-heading text-sm text-blue-900 dark:text-blue-500 hover:underline'>tony sebastian</h2>
                     </a>
                 </div>
                 <a
@@ -46,15 +47,15 @@ export default function AppHeader() {
                     rel="noopener noreferrer"
                     className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                    <GitHub size={16} className="text-gray-600 dark:text-gray-300" />
+                    <GitHub size={16} className="text-slate-600 dark:text-slate-300" />
                 </a>
                 <button 
                     onClick={toggleTheme}
                     className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                     {isDark ? 
-                        <Sun size={16} className="text-gray-600 dark:text-gray-300 " /> : 
-                        <Moon size={16} className="text-gray-600 dark:text-gray-300" />
+                        <Sun size={16} className="text-slate-600 dark:text-slate-300 " /> : 
+                        <Moon size={16} className="text-slate-600 dark:text-slate-300" />
                     }
                 </button>
             </div>

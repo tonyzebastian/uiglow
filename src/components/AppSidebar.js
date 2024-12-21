@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import Link from "next/link"  // Add this import
@@ -16,20 +15,22 @@ export default function AppSidebar() {
             ]
         },
         {
-            heading: "Content",
+            //heading: "React Components",
             items: [
-                { name: "Posts", href: "/posts" },
-                { name: "Projects", href: "/projects" },
+                { name: "JellyTags", href: "/react-comps/jellytags" },
+                { name: "Upvote", href: "/react-comps/upvote" },
+                { name: "Music Player", href: "/react-comps/music-player" },
+                { name: "Toolbar", href: "/react-comps/toolbar" },
             ]
         },
     ];
 
     return (
-        <aside className="pb-12 w-64">
-            <div className="space-y-4 py-4">
+        <aside className="h-[calc(100vh-5rem)] w-72 ">
+            <div className="py-4">
                 {navigation.map((section, index) => (
-                    <div key={index} className="px-3 py-2">
-                        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+                    <div key={index} className="px-3 ">
+                        <h2 className="mb-2 text-sm font-sans text-slate-400">
                             {section.heading}
                         </h2>
                         <div className="space-y-1">
@@ -38,7 +39,7 @@ export default function AppSidebar() {
                                     key={itemIndex}
                                     variant="ghost"
                                     className={cn(
-                                        "w-full justify-start",
+                                        "w-full justify-start font-sans  tracking-wide text-sm text-slate-800 dark:text-slate-200",
                                         pathname === item.href && "bg-muted"
                                     )}
                                     asChild
@@ -47,9 +48,6 @@ export default function AppSidebar() {
                                 </Button>
                             ))}
                         </div>
-                        {index < navigation.length - 1 && (
-                            <Separator className="my-4" />
-                        )}
                     </div>
                 ))}
             </div>
