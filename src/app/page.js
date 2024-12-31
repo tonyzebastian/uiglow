@@ -28,14 +28,6 @@ export default function HomePage() {
           <h1 className="text-4xl tracking-wide font-heading">Hey there, meet UIglow</h1>
           <p className="text-l tracking-wider mt-4 text-center font-sans px-8">A cozy corner of the web where I share my experiments with UI components, motion design, and creative ideas. <br /> Built with love, Figma, and a sprinkle of code magic.</p>
       </section>
-
-      <section className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-gray-200 h-64 rounded-lg"></div>
-          <div className="bg-gray-200 h-64 rounded-lg"></div>
-          <div className="bg-gray-200 h-64 rounded-lg"></div>
-        </div>
-      </section>
     </main>
   );
 }
