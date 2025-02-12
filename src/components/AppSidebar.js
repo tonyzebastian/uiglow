@@ -21,6 +21,7 @@ export default function AppSidebar() {
                 { name: "Upvote", href: "/react-comps/upvote" },
                 { name: "Music Player", href: "/react-comps/music-player" },
                 { name: "Toolbar", href: "/react-comps/toolbar" },
+                { name: "Clock", href: "/react-comps/clock" },
             ]
         },
     ];
