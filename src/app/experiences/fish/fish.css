@@ -1,0 +1,87 @@
+.aquarium {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.main-bg {
+    background-image: url('/fish/main_bg.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1;  /* Changed from 1 to -1 */
+}
+
+.sub-bg {
+    background-image: url('/fish/sub_bg.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 1;   /* Changed from -1 to 1 */
+}
+
+/* Container for background fish */
+.background-fish-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;   /* Stays at 0, now between main-bg (-1) and sub-bg (1) */
+    pointer-events: none;
+}
+
+/* Container for interactive fish */
+.fish-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;   /* Stays at 2, above everything */
+    pointer-events: none;
+}
+
+.background-fish {
+    position: absolute;
+    transform-origin: center;
+    will-change: transform;
+    opacity: 0.6; /* Reduced opacity for blending */
+    mix-blend-mode: multiply; /* Blend mode for background fish */
+}
+
+.background-fish .fish-wrapper {
+    transform-origin: center;
+    transition: transform 0.1s ease-out;
+}
+
+.background-fish img {
+    width: 20px;
+    height: auto;
+    
+}
+
+.fish {
+    position: absolute;
+    transform-origin: center;
+    will-change: transform;
+}
+
+.fish-wrapper {
+    transform-origin: center;
+    transition: transform 0.1s ease-out;
+}
+
+.fish img {
+    width: 30px;
+    height: auto;
+}

@@ -1,7 +1,5 @@
 import { Bitter, Raleway } from "next/font/google";
 import "./globals.css";
-import AppHeader from '../components/AppHeader';
-import AppSidebar from "@/components/AppSidebar";
 
 const bitter = Bitter({
   variable: "--font-bitter",
@@ -28,13 +26,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${bitter.variable} ${raleway.variable}`}>
       <body>
-          <div className="flex flex-col w-full max-w-[1600px] mx-auto ">
-            <AppHeader />
-            <div className="flex flex-row w-full">
-              <AppSidebar />
-              {children}
-            </div>
-          </div>
+        {children}
       </body>
     </html>
   );

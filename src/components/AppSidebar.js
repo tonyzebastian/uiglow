@@ -17,11 +17,11 @@ export default function AppSidebar() {
         {
             //heading: "React Components",
             items: [
-                { name: "JellyTags", href: "/react-comps/jellytags" },
-                { name: "Upvote", href: "/react-comps/upvote" },
-                { name: "Music Player", href: "/react-comps/music-player" },
-                { name: "Toolbar", href: "/react-comps/toolbar" },
-                { name: "Clock", href: "/react-comps/clock" },
+                { name: "JellyTags", href: "/ui-explorations/jellytags" },
+                { name: "Upvote", href: "/ui-explorations/upvote" },
+                { name: "Music Player", href: "/ui-explorations/music-player" },
+                { name: "Toolbar", href: "/ui-explorations/toolbar" },
+                { name: "Clock", href: "/ui-explorations/clock" },
             ]
         },
     ];

@@ -1,0 +1,34 @@
+.parent {
+    position: relative; 
+}
+
+.line {
+    width: auto;
+    height: 2px;
+    background-color: #e2e8f0;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.circle {
+    width: 10px; 
+    height: 10px; 
+    background-color: #627389;
+    border-radius: 50%; 
+    position: absolute;
+    z-index: 2; 
+    top: -4px;
+}
+
+.music:hover .musicimage {
+    filter: sepia(25%);
+  }
+
+
+.play {
+    display: none;
+  }
+
+.music:hover .play {
+    display: inline-flex;
+  }
