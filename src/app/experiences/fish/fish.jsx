@@ -57,6 +57,31 @@ export default class FishController {
                 this.mouseMoving = false;
             }, 100);
         });
+
+        // Add click event listener to scatter fishes
+        document.addEventListener('click', (e) => {
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+
+            this.fishData.forEach(data => {
+                const dx = data.x - clickX;
+                const dy = data.y - clickY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Calculate direction away from click
+                const dirX = dx / distance;
+                const dirY = dy / distance;
+
+                // Set higher velocity away from click for faster scatter
+                const scatterSpeed = 10; // Increased speed for faster scattering
+                data.velocityX = dirX * scatterSpeed;
+                data.velocityY = dirY * scatterSpeed;
+
+                // Move fish further away by increasing their target position
+                data.targetX = data.x + dirX * 200; // Adjust this value for larger radius
+                data.targetY = data.y + dirY * 200; // Adjust this value for larger radius
+            });
+        });
     }
     
     updateFish(fish, data, index) {

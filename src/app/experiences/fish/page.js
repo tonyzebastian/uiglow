@@ -21,10 +21,10 @@ export default function Aquarium() {
       
       {/* Background fish container */}
       <div className="background-fish-container">
-        {[...Array(30)].map((_, index) => (
+        {[...Array(10)].map((_, index) => (
           <div key={`bg-${index}`} className="background-fish">
             <div className="fish-wrapper">
-              <img src={`/fish/fish${(index % 5) + 1}.png`} alt="Background Fish" />
+              <img src={`/fish/fish${(index % 10) + 1}.png`} alt="Background Fish" />
             </div>
           </div>
         ))}
@@ -37,7 +37,7 @@ export default function Aquarium() {
         {[...Array(20)].map((_, index) => (
           <div key={index} className="fish">
             <div className="fish-wrapper">
-              <img src={`/fish/fish${(index % 5) + 1}.png`} alt="Fish" />
+              <img src={`/fish/fish${(index % 20) + 1}.png`} alt="Fish" />
             </div>
           </div>
         ))}
