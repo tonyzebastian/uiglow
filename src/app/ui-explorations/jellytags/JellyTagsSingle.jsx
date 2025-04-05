@@ -10,21 +10,21 @@ export default function JellyTags({ title = 'JellyTag' }) {
 
     return (
         <motion.div
-            className={`flex flex-row items-center px-4 py-2 gap-3 border-2 rounded-full cursor-pointer`}
+            className={`flex flex-row items-center px-4 py-2 gap-3 border rounded-full cursor-pointer `}
             onClick={toggleSelect}
             initial={{  // Add this block
-                borderColor: '#e5e7eb',
-                backgroundColor: '#FFFFFF'
+                borderColor: 'hsl(var(--border))',
+                backgroundColor: 'hsl(var(--background))'
             }}
             animate={{
-                borderColor: isSelected ? '#6FCF97' : '#e5e7eb',
-                backgroundColor: isSelected ? '#FFFFFF' : '#FFFFFF',
+                borderColor: isSelected ? '#6FCF97' : 'hsl(var(--border))',
+                backgroundColor: isSelected ? 'hsl(var(--background))' : 'hsl(var(--background))',
                 transition: { duration: 0.3 }
             }}
             whileHover={{
                 scale: 1.05,
                 borderColor: '#6FCF97', 
-                backgroundColor: '#E2F5EA', 
+                backgroundColor: 'hsl(var(--custom-bg))', 
                 transition: { duration: 0.3 }
             }}
         >
@@ -32,12 +32,12 @@ export default function JellyTags({ title = 'JellyTag' }) {
                 className={`text-base font-JetBrains`}
                 initial={{ color: '#6B6B6B' }} 
                 animate={{
-                    color: isSelected ? '#00AA45' : '#6B6B6B',
+                    color: isSelected ? 'var(--green_selected)' : 'hsl(var(--primary))',
                     transition: { duration: 0.3 }
                 }}
                 whileHover={{
-                    color: '#00AA45',
-                    transition: { duration: 0.3 }
+                        color: 'var(--green_selected)',
+                        transition: { duration: 0.3 }
                 }}
             >
                 {title}

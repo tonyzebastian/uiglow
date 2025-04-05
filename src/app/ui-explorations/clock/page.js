@@ -65,7 +65,7 @@ export default function ClockPage() {
               {timeZones.map((tz, index) => (
                 <Tooltip key={index}>
                   <TooltipTrigger asChild>
-                    <div className=" flex flex-col items-center p-4 border border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
+                    <div className=" flex flex-col items-center p-4 border border-slate-100 dark:border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
                       <div className="text-sm text-slate-600 group-hover:text-white mb-2">
                         UTC{tz.offset >= 0 ? '+' : ''}{tz.offset}
                       </div>

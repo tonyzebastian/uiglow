@@ -7,7 +7,8 @@ import './upvote.css';
 export default function Upvote() { 
 
   const [toggle, setToggle] = useState(false);
-  const colorAndNumber = toggle ? {  color: "#6FCF97", number: 29 } : { color: "#FFFFFF", number: 28 };
+  const colorAndNumber = toggle ? {  color: "#6FCF97", number: 29 } : { color: "hsl(var(--background))", number: 28 };
+  const borderColor = toggle ? "border-green-600 dark:border-green-400" : "border-slate-300 dark:border-slate-800 ";
 
   const variants = {
     initial: {scale: 1},
@@ -19,7 +20,7 @@ export default function Upvote() {
   };
 
   return (
-      <motion.div className="upvote_svg flex flex-col justify-center items-center px-8 py-4 border-2 cursor-pointer border-custom-green-light bg-white rounded-xl hover:shadow-custom-border hover:border-custom-green-medium"
+      <motion.div className={`upvote_svg flex flex-col justify-center items-center px-8 py-4 border cursor-pointer ${borderColor} bg-slate-50 dark:bg-slate-950 rounded-xl hover:shadow-custom-border hover:border-custom-green-medium`}
         initial="initial"
         whileHover="hover"
         variants={variants}
@@ -28,10 +29,11 @@ export default function Upvote() {
 
         <svg className="svg-icon" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect 
+            className="transition-colors duration-200 fill-slate-50 dark:fill-slate-950"
             width="40" 
             height="40" 
             rx="20" 
-            fill="#FFFFFF"
+
             />
 
             <path 
@@ -42,7 +44,7 @@ export default function Upvote() {
             strokeLinejoin="round"/>
         </svg>
 
-        <h1 className='mt-1 text-xl font-JetBrains text-green-900'>{colorAndNumber.number}</h1>
+        <h1 className='mt-1 text-xl font-JetBrains text-green-900 dark:text-green-200'>{colorAndNumber.number}</h1>
 
       </motion.div>
   );

@@ -16,7 +16,7 @@ export default function Toolbar() {
 
             <motion.div className='absolute bottom-100 inline-flex flex-col gap-8 justify-center items-center'>
 
-                <motion.div className='flex flex-grow justify-between items-center fill-white border border-zinc-200 rounded-2xl shadow-lg'
+                <motion.div className='flex flex-grow justify-between items-center fill-slate-100 dark:fill-slate-950  border dark:border-slate-700  border-slate-200 rounded-xl shadow-lg'
                     key={selectedMenu}
                     layout
                     transition={{ duration: 0.3 }}

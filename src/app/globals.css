@@ -30,6 +30,7 @@ body {
     --radius: 0.5rem;
     --clock-seconds:#E1F6E7;
     --clock-bg:#3A8660;
+    --green_selected:#009966;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -53,6 +54,7 @@ body {
     --ring: 212.7 26.8% 83.9%;
     --clock-seconds:#E1F6E7;
     --clock-bg:#3A8660;
+    --green_selected:#009966;
   }
 }
 

@@ -26,31 +26,31 @@ export default function Analytics() {
                         <div className='inline-flex flex-row gap-32'>
 
                             <div className='flex flex-row gap-2 justify-center items-center mb-1'>
-                                <h1 className='text-slate-900 text-base font-medium'>Traffic</h1>
-                                <h1 className='text-slate-500 text-sm'>Last 3 days</h1>
+                                <h1 className='text-slate-900 dark:text-slate-100 text-base font-medium'>Traffic</h1>
+                                <h1 className='text-slate-500 dark:text-slate-400 text-sm'>Last 3 days</h1>
                             </div>
-                            <h1 className='text-blue-500 text-base'>See all</h1>
+                            <h1 className='text-blue-500 dark:text-blue-400 text-base'>See all</h1>
 
                         </div>
 
                         <div className='flex flex-row flex-grow justify-between'>
-                            <h1 className='text-slate-500 text-sm'>/projects</h1>
-                            <h1 className='text-slate-500 text-sm'>2543 visits</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>/projects</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>2543 visits</h1>
                         </div>
 
                         <div className='flex flex-row flex-grow justify-between'>
-                            <h1 className='text-slate-500 text-sm'>/groups</h1>
-                            <h1 className='text-slate-500 text-sm'>432 visits</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>/groups</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>432 visits</h1>
                         </div>
 
                         <div className='flex flex-row flex-grow justify-between'>
-                            <h1 className='text-slate-500 text-sm'>/orders</h1>
-                            <h1 className='text-slate-500 text-sm'>2432 visits</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>/orders</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>2432 visits</h1>
                         </div>
 
                         <div className='flex flex-row flex-grow justify-between'>
-                            <h1 className='text-slate-500 text-sm'>/templates</h1>
-                            <h1 className='text-slate-500 text-sm'>1023 visits</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>/templates</h1>
+                            <h1 className='text-slate-500 dark:text-slate-400 text-sm'>1023 visits</h1>
                         </div>
 
                     </motion.div>

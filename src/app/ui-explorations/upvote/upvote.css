@@ -7,7 +7,7 @@
   }
 
 .upvote_svg:hover .svg-icon rect{
-    fill: #E2F5EA; 
+    fill: hsl(var(--background)); 
   }
 
   .upvote_svg:hover .svg-icon path{

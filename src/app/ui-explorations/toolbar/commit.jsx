@@ -31,7 +31,7 @@ export default function Commit() {
                 transition={{ duration: 0.3 }}
                 style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
             >
-                <h1 className='text-slate-950'>Failed to Compile</h1>
+                <h1 className='text-slate-950 dark:text-slate-200'>Failed to Compile</h1>
             </motion.div>
             )}
             </AnimatePresence>

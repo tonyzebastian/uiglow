@@ -18,7 +18,7 @@ export default function MusicPlay() {
 
     return (
         <motion.div
-            className={`inline-flex ${isSelected ? 'flex-col' : 'flex-row'} flex-wrap p-4 gap-3 shadow-md shadow-slate-100 border border-slate-200 rounded-2xl cursor-pointer w-full min-w-80 max-w-80 music`}
+            className={`inline-flex ${isSelected ? 'flex-col' : 'flex-row'} flex-wrap p-4 gap-3 shadow-md shadow-slate-100 dark:shadow-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer w-full min-w-80 max-w-80 music`}
             onClick={toggleSelect}
             whileHover={{
                 scale: 1.02,
@@ -26,14 +26,17 @@ export default function MusicPlay() {
             }}
         >
             <motion.div
-                animate={{ width: isSelected ? 'auto' : 64 }} 
+                animate={{ 
+                    width: isSelected ? 'auto' : 64,
+                    height: isSelected ? 'auto' : 64 
+                }} 
                 transition={{ duration: 0.2 }}
             >
                 <Image 
                     src="/music_cover.jpg" 
                     alt="Music Note" 
-                    width={64} 
-                    height={64} 
+                    width={isSelected ? 280 : 64} 
+                    height={isSelected ? 280 : 64} 
                     className="rounded-lg musicimage"
                 />
             </motion.div>
