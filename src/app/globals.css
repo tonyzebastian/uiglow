@@ -31,6 +31,7 @@ body {
     --clock-seconds:#E1F6E7;
     --clock-bg:#3A8660;
     --green_selected:#009966;
+    --gradient-color:#f8fafc;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -55,6 +56,7 @@ body {
     --clock-seconds:#E1F6E7;
     --clock-bg:#3A8660;
     --green_selected:#009966;
+    --gradient-color:#020617;
   }
 }
 

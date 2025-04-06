@@ -1,11 +1,5 @@
 import Clock from "./Clock"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -54,37 +48,31 @@ const timeZones = [
 
 export default function ClockPage() {
   return (
-    <main className="w-full p-6 ">
-      <Card className="w-full ">
-        <CardHeader>
-          <CardTitle>World Clocks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TooltipProvider>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-              {timeZones.map((tz, index) => (
-                <Tooltip key={index}>
-                  <TooltipTrigger asChild>
-                    <div className=" flex flex-col items-center p-4 border border-slate-100 dark:border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
-                      <div className="text-sm text-slate-600 group-hover:text-white mb-2">
-                        UTC{tz.offset >= 0 ? '+' : ''}{tz.offset}
-                      </div>
-                      <Clock 
-                        initialTime={new Date()} 
-                        timeZoneOffset={tz.offset}
-                        size={150}
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{tz.name}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          </TooltipProvider>
-        </CardContent>
-      </Card>
+    <main className="w-full p-6">
+      <h1 className="text-2xl font-bold mb-6">World Clocks</h1>
+      <TooltipProvider>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3">
+          {timeZones.map((tz, index) => (
+            <Tooltip key={index}>
+              <TooltipTrigger asChild>
+                <div className="flex flex-col items-center p-4 border border-slate-100 dark:border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
+                  <div className="text-sm text-slate-600 group-hover:text-white mb-2">
+                    UTC{tz.offset >= 0 ? '+' : ''}{tz.offset}
+                  </div>
+                  <Clock 
+                    initialTime={new Date()} 
+                    timeZoneOffset={tz.offset}
+                    size={150}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tz.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </TooltipProvider>
     </main>
   )
 }

@@ -1,10 +1,10 @@
 "use client"
 
-import { GitHub, Moon, Sun, User } from 'react-feather';
+import { GitHub, Moon, Sun, User, ArrowLeft } from 'react-feather';
 import { useEffect, useState } from 'react';
 import UIGlowLogo from './Logo';
 
-export default function AppHeader() {
+export default function AppHeader({ variant = 'primary' }) {
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
@@ -28,35 +28,49 @@ export default function AppHeader() {
     };
 
     return (
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pt-8 pb-3 px-2 max-w-[1600px]">
-            <UIGlowLogo />
-            <div className="flex items-center gap-4">
-                <a
-                    href="https://www.tonyzeb.design/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                    <User size={16} className="text-slate-600 dark:text-slate-400" />
-                </a>
-                <a
-                    href="https://github.com/tonyzebastian/uiglow"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                    <GitHub size={16} className="text-slate-600 dark:text-slate-400" />
-                </a>
-                <button 
-                    onClick={toggleTheme}
-                    className="hover:cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                    {isDark ? 
-                        <Sun size={16} className="text-slate-600 dark:text-slate-400 " /> : 
-                        <Moon size={16} className="text-slate-600 dark:text-slate-400" />
-                    }
-                </button>
+        <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 z-50">
+            <div 
+                className="mx-auto h-full px-4 flex items-center justify-between border-x border-slate-200 dark:border-slate-800  md:w-[700px] lg:w-[800px] xl:w-[900px]"
+            >
+                {variant === 'secondary' ? (
+                    <button 
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                        onClick={() => window.history.back()}
+                    >
+                        <ArrowLeft className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+                    </button>
+                ) : (
+                    <UIGlowLogo />
+                )}
+
+                <div className="flex items-center gap-4">
+                    <a
+                        href="https://www.tonyzeb.design/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                    >
+                        <User size={16} className="text-slate-700 dark:text-slate-300" />
+                    </a>
+                    <a
+                        href="https://github.com/tonyzebastian/uiglow"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                    >
+                        <GitHub size={16} className="text-slate-700 dark:text-slate-300" />
+                    </a>
+                    <button 
+                        onClick={toggleTheme}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                    >
+                        {isDark ? 
+                            <Sun size={16} className="text-slate-700 dark:text-slate-300" /> : 
+                            <Moon size={16} className="text-slate-700 dark:text-slate-300" />
+                        }
+                    </button>
+                </div>
             </div>
-        </div>
+        </header>
     );
 }

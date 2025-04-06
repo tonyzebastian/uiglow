@@ -1,0 +1,168 @@
+:root {
+    --gradient-start: #E6F0FF;
+    --gradient-end: #FFE8F5;
+    --stroke:#212121;
+}
+
+/* Circle Styles & Animation */
+#Circle_0,
+#Circle_1,
+#Circle_2,
+#Circle_3,
+#Circle_4 {
+    transform-origin: center;
+}
+
+@keyframes hoverCircle {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0.85);
+    }
+}
+
+@keyframes clickCircle {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+svg:hover #Circle_0:not(.clicked),
+svg:hover #Circle_1:not(.clicked),
+svg:hover #Circle_2:not(.clicked),
+svg:hover #Circle_3:not(.clicked),
+svg:hover #Circle_4:not(.clicked) 
+{
+    animation: hoverCircle 0.3s ease-out forwards;
+}
+
+svg:active #Circle_0:not(.clicked),
+svg:active #Circle_2:not(.clicked),
+svg:active #Circle_3:not(.clicked),
+svg:active #Circle_4:not(.clicked)
+{
+    animation: clickCircle 0.5s ease-out forwards;
+}
+
+#Circle_0.clicked,
+#Circle_1.clicked,
+#Circle_2.clicked,
+#Circle_3.clicked,
+#Circle_4.clicked
+{
+    transform: scale(1.5);
+    opacity: 0;
+}
+
+/* Lock Styles & Animation */
+#lock {
+    transform-origin: center;
+}
+
+#lock #Body {
+    transform-origin: center;
+}
+
+#lock #Hole {
+    stroke-width: 2;
+    transition: stroke-width 0.2s ease-out;
+}
+
+svg:hover #lock:not(.unlocked) #Hole {
+    stroke-width: 3;
+}
+
+svg:hover #lock:not(.unlocked) #Top_Part {
+    animation: hoverTopPart 0.2s ease-out forwards;
+}
+
+svg:hover #lock:not(.unlocked) #Body {
+    animation: hoverBody 0.2s ease-out forwards;
+}
+
+@keyframes hoverTopPart {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(2px);
+    }
+}
+
+@keyframes hoverBody {
+    0% {
+        transform: scale(1, 1);
+    }
+    100% {
+        transform: scale(1.1, 1);
+    }
+}
+
+@keyframes unlockAnimation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(-25deg);
+    }
+}
+
+@keyframes fadeOutLock {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+#lock.unlocked #Top_Part {
+    transform-origin: 43.334px 39.5833px;
+    animation: unlockAnimation 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+#lock.unlocked {
+    animation: fadeOutLock 0.2s ease-out forwards;
+    animation-delay: 0.5s;
+}
+
+@keyframes exclamation1Animation {
+    0% {
+        transform: translate(-3px, 3px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes exclamation2Animation {
+    0% {
+        transform: translate(-5px, -3px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0);
+        opacity: 1;
+    }
+}
+
+#exclamation_1, #exclamation_2 {
+    opacity: 0;
+    transform-origin: center;
+}
+
+#lock.unlocked #exclamation_1 {
+    animation: exclamation1Animation 0.3s ease-out forwards;
+}
+
+#lock.unlocked #exclamation_2 {
+    animation: exclamation2Animation 0.3s ease-out forwards;
+}
