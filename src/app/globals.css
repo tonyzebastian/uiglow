@@ -32,6 +32,9 @@ body {
     --clock-bg:#3A8660;
     --green_selected:#009966;
     --gradient-color:#f8fafc;
+    --blob-green:#d9f99d;
+    --blob-red:#fb7185;
+    --blob-blue:#67e8f9;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -57,6 +60,9 @@ body {
     --clock-bg:#3A8660;
     --green_selected:#009966;
     --gradient-color:#020617;
+    --blob-green:#065f46;
+    --blob-red:#b91c1c;
+    --blob-blue:#3730a3;
   }
 }
 

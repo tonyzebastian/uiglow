@@ -28,9 +28,9 @@ export default function AppHeader({ variant = 'primary' }) {
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 z-50">
+        <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900 z-50">
             <div 
-                className="mx-auto h-full px-4 flex items-center justify-between border-x border-slate-200 dark:border-slate-800  md:w-[700px] lg:w-[800px] xl:w-[900px]"
+                className="mx-auto h-full px-4 flex items-center justify-between border-x border-slate-200 dark:border-slate-900  md:w-[700px] lg:w-[800px] xl:w-[900px]"
             >
                 {variant === 'secondary' ? (
                     <button 

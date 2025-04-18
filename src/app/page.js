@@ -1,36 +1,47 @@
 import Link from 'next/link';
 import AppHeader from '@/components/AppHeader';
+import GradientBlob from '@/components/backgrounds/GradientBlob';
+import CustomCard from '@/components/CustomCard';
+import { Fish, Tag, ThumbsUp, Music, Wrench, Clock, Unlock } from 'lucide-react';
 
-const experiences = [
+const experienceCards = [
   {
-    title: 'Interactive Fish',
+    image: "/profile.jpg",
+    heading: "Interactive Fish",
+    description: "An interactive fish experience with realistic movement",
     href: '/experiences/fish'
   }
 ];
 
-const explorations = [
+const explorationCards = [
   {
-    title: 'JellyTags',
+    icon: <Tag className="w-6 h-6" />,
+    heading: "JellyTags",
     href: '/ui-explorations/jellytags'
   },
   {
-    title: 'Upvote',
+    icon: <ThumbsUp className="w-6 h-6" />,
+    heading: "Upvote",
     href: '/ui-explorations/upvote'
   },
   {
-    title: 'Music Player',
+    icon: <Music className="w-6 h-6" />,
+    heading: "Music Player",
     href: '/ui-explorations/music-player'
   },
   {
-    title: 'Toolbar',
+    icon: <Wrench className="w-6 h-6" />,
+    heading: "Toolbar",
     href: '/ui-explorations/toolbar'
   },
   {
-    title: 'Clock',
+    icon: <Clock className="w-6 h-6" />,
+    heading: "Clock",
     href: '/ui-explorations/clock'
   },
   {
-    title: 'Unlock',
+    icon: <Unlock className="w-6 h-6" />,
+    heading: "Unlock",
     href: '/ui-explorations/unlock'
   }
 ];
@@ -46,44 +57,49 @@ export default function HomePage() {
         </div>
 
         {/* Main Content */}
-        <div className="w-[700px] md:w-[700px] lg:w-[800px] xl:w-[900px] border-x border-slate-200 dark:border-slate-800 pt-16">
+        <div className="w-[700px] md:w-[700px] lg:w-[800px] xl:w-[900px] border-x border-slate-200 dark:border-slate-900 pt-16">
           <div className="px-6">
             <AppHeader maxWidth="700px" />
-
-            <section className="relative w-full flex flex-col items-start justify-center overflow-hidden rounded-lg pt-8">
-              <p className="text-base tracking-wider font-sans dark:text-slate-200 text-slate-900">
-                A cozy corner of the web where I share my experiments with UI components, motion design, and creative ideas. Built with love, Figma, and a sprinkle of code magic.
-              </p>
+            <section className="relative w-full h-96 flex flex-col items-start justify-center rounded-lg pt-8">
+              <GradientBlob>
+                <div className='flex flex-col items-center max-w-lg'>
+                  <h1>UiGlow</h1>
+                  <p className="text-base tracking-wider font-sans dark:text-slate-200 text-slate-900 text-center">
+                    A cozy corner of the web where I share my experiments with UI components, motion design, and creative ideas. Built with love, Figma, and a sprinkle of code magic.
+                  </p>
+                </div>
+              </GradientBlob>
             </section>
 
             {/* Experiences Section */}
             <div className="mt-8">
-              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">Experiences</h2>
-              <div className="flex flex-col gap-2">
-                {experiences.map((item, index) => (
-                  <Link 
+              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                Experiences
+              </h2>
+              <div className="grid gap-4">
+                {experienceCards.map((cardData, index) => (
+                  <CustomCard
                     key={index}
-                    href={item.href}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
-                  >
-                    {item.title}
-                  </Link>
+                    variant="horizontal"
+                    data={cardData}
+                  />
                 ))}
               </div>
             </div>
 
             {/* UI Explorations Section */}
             <div className="mt-8">
-              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">UI Explorations</h2>
-              <div className="flex flex-col gap-2">
-                {explorations.map((item, index) => (
-                  <Link 
+              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                UI Explorations
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {explorationCards.map((cardData, index) => (
+                  <CustomCard
                     key={index}
-                    href={item.href}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
-                  >
-                    {item.title}
-                  </Link>
+                    variant="vertical"
+                    data={cardData}
+                    className="h-full" // This ensures all cards in a row have the same height
+                  />
                 ))}
               </div>
             </div>
