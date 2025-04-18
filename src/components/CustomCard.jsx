@@ -19,35 +19,35 @@ const CustomCard = ({
       {/* Card Content */}
       <div className="relative z-10">
         {variant === "horizontal" ? (
-          <div className="flex items-start gap-4">
+          <div className="flex flex-row items-center gap-4">
             {data.image && (
               <div className="flex-shrink-0">
                 <img
                   src={data.image}
                   alt={data.heading}
-                  className="h-8 w-8 rounded-sm object-cover"
+                  className="h-8 w-18 rounded-sm object-cover"
                 />
               </div>
             )}
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-base font-semibold font-sans tracking-wide text-slate-800 dark:text-slate-200">
                 {data.heading}
               </h3>
               {data.description && (
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm font-sans tracking-wider text-slate-800 dark:text-slate-200">
                   {data.description}
                 </p>
               )}
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-row items-center gap-4">
             {data.icon && (
-              <div className="mb-3">
+              <div className="mb-3 text-slate-800 dark:text-slate-400">
                 {data.icon}
               </div>
             )}
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="text-base font-sans tracking-wider text-slate-800 dark:text-slate-200">
               {data.heading}
             </h3>
           </div>
@@ -79,13 +79,12 @@ const CustomCard = ({
       <Card
         className={cn(
           "relative transition-all duration-300",
-          "bg-white dark:bg-slate-800",
-          "border border-slate-200 dark:border-slate-700",
-          isHovered && "border-slate-400 dark:border-slate-500",
+          "dark:bg-slate-950 bg-slate-50",
+          "border dark:border-slate-900 border-slate-200",
+          isHovered && "dark:border-slate-600 border-slate-400",
           variant === "horizontal" ? "p-4" : "p-6",
           "overflow-hidden",
           "cursor-pointer",
-          "hover:scale-[1.02]", // Add a subtle scale effect on hover
           className
         )}
         onMouseEnter={() => setIsHovered(true)}
@@ -99,11 +98,12 @@ const CustomCard = ({
     <Card
       className={cn(
         "relative transition-all duration-300",
-        "bg-white dark:bg-slate-800",
-        "border border-slate-200 dark:border-slate-700",
-        isHovered && "border-slate-400 dark:border-slate-500",
+        "dark:bg-slate-950 bg-slate-50",
+        "border dark:border-slate-900 border-slate-200",
+        isHovered && "dark:border-slate-600",
         variant === "horizontal" ? "p-4" : "p-6",
         "overflow-hidden",
+        "cursor-pointer",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}

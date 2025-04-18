@@ -6,7 +6,7 @@ import { Fish, Tag, ThumbsUp, Music, Wrench, Clock, Unlock } from 'lucide-react'
 
 const experienceCards = [
   {
-    image: "/profile.jpg",
+    image: "/fish/fish1.png",
     heading: "Interactive Fish",
     description: "An interactive fish experience with realistic movement",
     href: '/experiences/fish'
@@ -16,7 +16,7 @@ const experienceCards = [
 const explorationCards = [
   {
     icon: <Tag className="w-6 h-6" />,
-    heading: "JellyTags",
+    heading: "Jelly Tags",
     href: '/ui-explorations/jellytags'
   },
   {
@@ -58,12 +58,11 @@ export default function HomePage() {
 
         {/* Main Content */}
         <div className="w-[700px] md:w-[700px] lg:w-[800px] xl:w-[900px] border-x border-slate-200 dark:border-slate-900 pt-16">
-          <div className="px-6">
+          <div className="px-12">
             <AppHeader maxWidth="700px" />
             <section className="relative w-full h-96 flex flex-col items-start justify-center rounded-lg pt-8">
               <GradientBlob>
                 <div className='flex flex-col items-center max-w-lg'>
-                  <h1>UiGlow</h1>
                   <p className="text-base tracking-wider font-sans dark:text-slate-200 text-slate-900 text-center">
                     A cozy corner of the web where I share my experiments with UI components, motion design, and creative ideas. Built with love, Figma, and a sprinkle of code magic.
                   </p>
@@ -73,8 +72,8 @@ export default function HomePage() {
 
             {/* Experiences Section */}
             <div className="mt-8">
-              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
-                Experiences
+              <h2 className="text-sm font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-4">
+                EXPERIENCES
               </h2>
               <div className="grid gap-4">
                 {experienceCards.map((cardData, index) => (
@@ -88,9 +87,9 @@ export default function HomePage() {
             </div>
 
             {/* UI Explorations Section */}
-            <div className="mt-8">
-              <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
-                UI Explorations
+            <div className="mt-8 mb-8">
+              <h2 className="text-sm font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-4">
+                UI EXPLORATIONS
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {explorationCards.map((cardData, index) => (
