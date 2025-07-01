@@ -46,6 +46,7 @@ export default function InteractiveTitle({ heading, href, image, newTab = false 
         side="right"
         align="start"
         sideOffset={8}
+        onCloseAutoFocus={(event) => event.preventDefault()}
         className="!w-auto max-w-[20rem] max-h-[80vh] dark:bg-slate-900 bg-slate-50 shadow-xl p-2"
       >
         <img src={image} alt={heading} className="block rounded-lg overflow-hidden max-w-full max-h-full object-contain"/>
