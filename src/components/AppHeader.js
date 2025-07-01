@@ -3,6 +3,7 @@
 import { GitHub, Moon, Sun, User, ArrowLeft } from 'react-feather';
 import { useEffect, useState } from 'react';
 import UIGlowLogo from './Logo';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 
 export default function AppHeader({ variant = 'primary' }) {
     const [isDark, setIsDark] = useState(false);
@@ -43,33 +44,52 @@ export default function AppHeader({ variant = 'primary' }) {
                     <UIGlowLogo />
                 )}
 
+            <TooltipProvider>
                 <div className="flex items-center gap-4">
-                    <a
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <a
                         href="https://www.tonyzeb.design/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
-                    >
+                        >
                         <User size={16} className="text-slate-700 dark:text-slate-300" />
-                    </a>
-                    <a
+                        </a>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Tony Sebastian</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <a
                         href="https://github.com/tonyzebastian/uiglow"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
-                    >
+                        >
                         <GitHub size={16} className="text-slate-700 dark:text-slate-300" />
-                    </a>
-                    <button 
+                        </a>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Github Repo</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button 
                         onClick={toggleTheme}
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
-                    >
-                        {isDark ? 
-                            <Sun size={16} className="text-slate-700 dark:text-slate-300" /> : 
-                            <Moon size={16} className="text-slate-700 dark:text-slate-300" />
+                        >
+                        {isDark 
+                            ? <Sun size={16} className="text-slate-700 dark:text-slate-300" /> 
+                            : <Moon size={16} className="text-slate-700 dark:text-slate-300" />
                         }
-                    </button>
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Switch Theme</TooltipContent>
+                    </Tooltip>
                 </div>
+            </TooltipProvider>
             </div>
         </header>
     );

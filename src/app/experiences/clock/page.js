@@ -48,31 +48,36 @@ const timeZones = [
 
 export default function ClockPage() {
   return (
-    <main className="w-full p-6">
-      <h1 className="text-2xl font-bold mb-6">World Clocks</h1>
-      <TooltipProvider>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3">
-          {timeZones.map((tz, index) => (
-            <Tooltip key={index}>
-              <TooltipTrigger asChild>
-                <div className="flex flex-col items-center p-4 border border-slate-100 dark:border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
-                  <div className="text-sm text-slate-600 group-hover:text-white mb-2">
-                    UTC{tz.offset >= 0 ? '+' : ''}{tz.offset}
-                  </div>
-                  <Clock 
-                    initialTime={new Date()} 
-                    timeZoneOffset={tz.offset}
-                    size={150}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{tz.name}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
+    <main className="dark w-full ">
+      <div className=" bg-slate-50 dark:bg-slate-950 p-6">
+        <div className="m-6 flex flex-col justify-center items-center gap-1">
+          <h1 className="text-3xl font-heading  dark:text-slate-100">World Clock</h1>
+          <p className="dark:text-slate-300 font-sans tracking-wider">A visual represenation of all major timezones</p>
         </div>
-      </TooltipProvider>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {timeZones.map((tz, index) => (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center p-4 border border-slate-100 dark:border-slate-900 transition-colors hover:bg-[var(--clock-bg)] hover:text-white group">
+                    <div className="text-sm text-slate-600 group-hover:text-white mb-2">
+                      UTC{tz.offset >= 0 ? '+' : ''}{tz.offset}
+                    </div>
+                    <Clock 
+                      initialTime={new Date()} 
+                      timeZoneOffset={tz.offset}
+                      size={150}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{tz.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
+      </div>
     </main>
   )
 }
