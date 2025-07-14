@@ -9,6 +9,7 @@ const BreathingText = ({
   fromFontVariationSettings,
   toFontVariationSettings,
 
+
   transition = {
     duration: 1.5,
     ease: "easeInOut",

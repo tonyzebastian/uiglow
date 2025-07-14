@@ -1,8 +1,11 @@
 // src/app/page.js
-import AppHeader from '@/components/AppHeader';
+import AppHeader from '@/components/core/AppHeader';
 import GradientBlob from '@/components/backgrounds/GradientBlob';
-import InteractiveTitle from '@/components/InteractiveTitle';
 import BreathingTextComp from '@/components/effects/BreathingText';
+import ExperienceCard from '@/components/core/ExperienceCard';
+import ClockPreview from '@/components/previews/ClockPreview';
+import JellyTagsSingle from './ui-interactions/jellytags/JellyTagsSingle';
+import CoinFlip from './svg-animations/coinflip/coinflip';
 
 const experienceCards = [
   {
@@ -13,7 +16,7 @@ const experienceCards = [
     newTab: true,
   },
   {
-    image: "/thumbnails/clock.gif",
+    component: ClockPreview,
     heading: "World Clock",
     description: "A visual represenation of all timezones",
     href: '/experiences/clock',
@@ -22,11 +25,19 @@ const experienceCards = [
 ];
 
 const explorationCards = [
-  { heading: "Jelly Tags",     href: '/ui-explorations/jellytags',    image: "/thumbnails/jellytags.png",   newTab: false },
-  { heading: "Upvote",         href: '/ui-explorations/upvote',       image: "/thumbnails/upvote.png",   newTab: false },
-  { heading: "Music Player",   href: '/ui-explorations/music-player', image: "/thumbnails/music.png",   newTab: false  },
-  { heading: "Toolbar",        href: '/ui-explorations/toolbar',      image: "/thumbnails/toolbar.png",   newTab: false },
-  { heading: "Unlock",         href: '/ui-explorations/unlock',       image: "/thumbnails/jellytags.png",   newTab: false },
+  {
+    component: JellyTagsSingle,
+    heading: "UI Interactions",
+    href: "/ui-interactions",
+    newTab: false,
+    componentProps: { title: 'Interactive Tag' }  // Pass props to JellyTagsSingle
+  },
+  {
+    component: CoinFlip,
+    heading: "Svg Animations",
+    href: "/svg-animations",
+    newTab: false,
+  }
 ];
 
 export default function HomePage() {
@@ -55,43 +66,26 @@ export default function HomePage() {
               </GradientBlob>
             </section>
 
-            {/* Experiences Section */}
-            <div className="mt-4">
-              <h2 className="text-xs font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-4">
+          {/* Experiences Section */}
+          <div className="mt-16">
+              <h2 className="text-xs font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-6">
                 EXPERIENCES
               </h2>
-              <div className="grid gap-8">
-                {experienceCards.map((cardData, index) => (
-                  <div key={index}>
-                    <InteractiveTitle
-                      heading={cardData.heading}
-                      href={cardData.href}
-                      image={cardData.image}
-                      newTab={cardData.newTab}
-                    />
-                    <p className="pt-1 text-sm font-sans font-normal tracking-widest text-slate-800 dark:text-slate-300">
-                      {cardData.description}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-2 gap-8">
+                {experienceCards.map((card, index) => (
+                  <ExperienceCard key={index} {...card} />
                 ))}
               </div>
             </div>
 
             {/* UI Explorations Section */}
             <div className="mt-16 mb-8">
-              <h2 className="text-xs font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-4">
-                UI EXPLORATIONS
+              <h2 className="text-xs font-sans font-medium tracking-widest text-slate-500 dark:text-slate-500 mb-6">
+                EXPLORATIONS
               </h2>
-              <div className="grid grid-cols-2 gap-6">
-                {explorationCards.map((cardData, index) => (
-                  <div key={index}>
-                    <InteractiveTitle
-                      heading={cardData.heading}
-                      href={cardData.href}
-                      image={cardData.image}
-                      newTab={cardData.newTab}
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-8">
+                {explorationCards.map((card, index) => (
+                  <ExperienceCard key={index} {...card} />
                 ))}
               </div>
             </div>

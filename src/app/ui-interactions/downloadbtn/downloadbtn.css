@@ -1,0 +1,31 @@
+.wrapper {
+    display: flex;
+    padding: 8px 16px 8px;
+    gap: 6px;
+    border-width: 2px;
+    border-radius: 50px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.downicon {
+    display: grid;
+    place-items: center;
+}
+
+.arrow {
+    grid-area: 1 / 1;
+    transition: transform 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+}
+
+.downicon .arrow:first-of-type {
+    transform: translateY(-125%);
+}
+
+.wrapper:hover .downicon .arrow:first-of-type{
+    transform: translateY(0);
+}
+
+.wrapper:hover .downicon .arrow:last-of-type{
+    transform: translateY(125%);
+}

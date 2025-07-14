@@ -1,0 +1,59 @@
+.maincontainer {
+    position: relative;
+    width: 62px;
+    height: 62px;
+}
+
+.wrapper {
+    position: absolute;
+    width: 62px;
+    height:62px;
+    transform-style: preserve-3d;
+    animation: rotate 4s infinite linear;
+}
+
+.coin-side {
+    position: absolute;
+    border-radius: 0;
+    width: 6px;
+    height: 62px;
+    transform: translateX(26px) rotateY(90deg);
+    background: #04C98D;
+}
+
+.coin {
+    position: absolute;
+    border-radius: 50%;
+    width: 62px;
+    height: 62px;
+    backface-visibility: hidden;
+    background: #04C98D;
+}
+
+.front {
+    transform: translateZ(3px);
+}
+
+.outer {
+    transform: translateZ(3px);
+}
+
+.front.inner {
+    background: #04C98D;
+    transform: rotateY(180deg) translateZ(-3px);
+  }
+   
+.back.inner {
+    background: #04C98D;
+    transform: translateZ(-3px);
+  }
+   
+.back {
+    transform: rotateY(180deg) translateZ(3px);
+  }
+
+@keyframes rotate {
+    to {
+      transform: rotateY(360deg);
+    }
+  }
