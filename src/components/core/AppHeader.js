@@ -58,19 +58,21 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
                 {/* ... rest of the code remains the same ... */}
                 <TooltipProvider>
                     <div className="flex items-center gap-4">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <a
-                                    href="https://www.tonyzeb.design/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
-                                >
-                                    <User size={16} className="text-slate-700 dark:text-slate-300" />
-                                </a>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">Tony Sebastian</TooltipContent>
-                        </Tooltip>
+                        <a
+                            href="https://www.tonyzeb.design/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 pl-2 pr-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-colors border "
+                        >
+                            <img 
+                                src="/profile.jpg" 
+                                alt="Tony Sebastian"
+                                className="w-6 h-6 rounded-full object-cover"
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-300">
+                                Tony Sebastian
+                            </span>
+                        </a>
 
                         <Tooltip>
                             <TooltipTrigger asChild>
