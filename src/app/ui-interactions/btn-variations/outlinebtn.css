@@ -1,0 +1,65 @@
+/* Button styles */
+.animated-outline-split-button {
+    --offset: 2px;
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #1a1a1a;  /* Dark background for better contrast */
+}
+
+/* Animated border gradient */
+.animated-outline-split-button::before {
+    content: '';
+    background: conic-gradient(transparent 270deg, #097BED, transparent);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    aspect-ratio: 1;
+    width: 100%;
+    animation: rotate 4s linear infinite;
+    z-index: 0;
+}
+
+/* Inner background */
+.animated-outline-split-button::after {
+    content: '';
+    position: absolute;
+    inset: var(--offset);
+    border-radius: 4px;
+    background: inherit;
+    z-index: 1;
+}
+
+/* Main button and menu button shared styles */
+.btn {
+    background: transparent;
+    border: none;
+    color: white;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    padding: 12px 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+}
+
+/* Animation */
+@keyframes rotate {
+    from {
+        transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
+    }
+}
+
+/* Main button specific styles */
+.animated-outline-split-button__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}

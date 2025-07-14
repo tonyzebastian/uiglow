@@ -3,5 +3,5 @@ export const navItems = [
     { label: "Upvote",         href: "/ui-interactions/upvote" },
     { label: "Music Player",   href: "/ui-interactions/music-player" },
     { label: "Toolbar",        href: "/ui-interactions/toolbar" },
-    { label: "Download Button",href: "/ui-interactions/downloadbtn" },
+    { label: "Download Button",href: "/ui-interactions/btn-variations" },
   ];
