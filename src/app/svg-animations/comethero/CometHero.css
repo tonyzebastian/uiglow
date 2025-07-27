@@ -1,0 +1,48 @@
+.circle-container {
+position: relative;
+width: 100%; /* Changed from 800px to 100% */
+aspect-ratio: 1; /* This maintains a square shape */
+perspective: 1500px;
+
+}
+
+.circle-wrapper {
+position: absolute;
+transform-style: preserve-3d;
+pointer-events: none;
+}
+
+/* Each circle has unique transform and position */
+.circle1 {
+transform: rotateX(60deg) rotateY(20deg) rotateZ(5deg);
+top: 0;
+left: -15%;
+width: 75%; /* Make circles relative to container size */
+height: 75%;
+}
+
+.circle2 {
+transform: rotateX(-60deg) rotateY(20deg) rotateZ(5deg);
+top: -10%;
+left: 25%;
+width: 100%; /* This circle can be larger */
+height: 100%;
+}
+
+/* Each circle has unique transform and position */
+.circle3 {
+transform: rotateX(60deg) rotateY(-20deg) rotateZ(5deg);
+top: 20%;
+left: -15%;
+width: 75%; /* Make circles relative to container size */
+height: 75%;
+}
+    
+.circle4 {
+transform: rotateX(-60deg) rotateY(-20deg) rotateZ(5deg);
+top: 10%;
+left: 10%;
+width: 100%; /* This circle can be larger */
+height: 100%;
+}
+
