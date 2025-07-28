@@ -35,7 +35,11 @@ body {
     --blob-green:#d9f99d;
     --blob-red:#fb7185;
     --blob-blue:#67e8f9;
+    --gradient-start: #E6F0FF;
+    --gradient-end: #FFE8F5;
+    --gradient-stroke:#212121;
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -63,6 +67,9 @@ body {
     --blob-green:#065f46;
     --blob-red:#b91c1c;
     --blob-blue:#3730a3;
+    --gradient-start: #3869b3;
+    --gradient-end: #db79b1;
+    --gradient-stroke:#ffffff;
   }
 }
 

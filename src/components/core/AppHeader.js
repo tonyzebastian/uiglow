@@ -42,15 +42,20 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
                         href="/"
                         className="flex items-center gap-2"
                     >
-                        {variant === 'secondary' && secondaryLogo ? (
-                            secondaryLogo
+                        {variant === 'secondary' ? (
+                            <>
+                                {secondaryLogo}
+                                {title && (
+                                    <>
+                                        <span className="text-slate-400 dark:text-slate-600 text-2xl font-light">/</span>
+                                        <span className="text-slate-700 dark:text-slate-300 text-base font-normal font-sans tracking-wide hover:dark:text-blue-300 hover:text-blue-800">
+                                            {title}
+                                        </span>
+                                    </>
+                                )}
+                            </>
                         ) : (
                             <UIGlowLogo />
-                        )}
-                        {variant === 'secondary' && title && (
-                            <span className="text-slate-700 dark:text-slate-300 text-lg font-medium font-sans tracking-wide hover:dark:text-blue-300 hover:text-blue-800">
-                                {title}
-                            </span>
                         )}
                     </a>
                 </div>

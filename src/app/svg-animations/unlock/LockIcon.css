@@ -1,8 +1,3 @@
-:root {
-    --gradient-start: #E6F0FF;
-    --gradient-end: #FFE8F5;
-    --stroke:#212121;
-}
 
 /* Circle Styles & Animation */
 #Circle_0,
@@ -166,3 +161,31 @@ svg:hover #lock:not(.unlocked) #Body {
 #lock.unlocked #exclamation_2 {
     animation: exclamation2Animation 0.3s ease-out forwards;
 }
+
+/* Update the container and reset button styles */
+.lock-container {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .reset-button-container {
+    min-height: 32px; /* Height of the button - prevents layout shift */
+  }
+  
+  .reset-button {
+    opacity: 0;
+    animation: fadeInButton 0.3s ease-out forwards;
+  }
+  
+  @keyframes fadeInButton {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
