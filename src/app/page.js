@@ -23,6 +23,14 @@ const experienceCards = [
     newTab: true,
     componentBackground: "bg-green-700 dark:bg-green-800/10"
   },
+  {
+    component: ClockPreview,
+    heading: "World Clock",
+    description: "A visual represenation of all timezones",
+    href: '/experiences/slate_cars',
+    newTab: true,
+    componentBackground: "bg-green-700 dark:bg-green-800/10"
+  },
 ];
 
 const explorationCards = [
