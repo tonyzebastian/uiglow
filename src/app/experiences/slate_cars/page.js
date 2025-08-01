@@ -41,14 +41,25 @@ export default function SlateCarAnimation() {
   // Preload all car images
   useEffect(() => {
     const preloadImages = async () => {
+      console.log('Starting image preload...');
       const imagePromises = [];
+      let loadedCount = 0;
+      const totalImages = 202 + 5; // Updated to 202 based on your keyFrames
       
-      // Preload all car sequence images (1-203)
-      for (let i = 1; i <= 203; i++) {
+      // Preload all car sequence images (1-202)
+      for (let i = 1; i <= 202; i++) {
         const img = new Image();
-        const promise = new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if some images fail
+        const promise = new Promise((resolve) => {
+          img.onload = () => {
+            loadedCount++;
+            console.log(`Loaded ${loadedCount}/${totalImages} images`);
+            resolve();
+          };
+          img.onerror = () => {
+            console.warn(`Failed to load car_${i}.jpg`);
+            loadedCount++;
+            resolve(); // Continue even if some images fail
+          };
         });
         img.src = `/slate/car_${i}.jpg`;
         imagePromises.push(promise);
@@ -57,15 +68,24 @@ export default function SlateCarAnimation() {
       // Preload configuration preview images (1-5.png)
       for (let i = 1; i <= 5; i++) {
         const img = new Image();
-        const promise = new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = resolve;
+        const promise = new Promise((resolve) => {
+          img.onload = () => {
+            loadedCount++;
+            console.log(`Loaded ${loadedCount}/${totalImages} images`);
+            resolve();
+          };
+          img.onerror = () => {
+            console.warn(`Failed to load ${i}.png`);
+            loadedCount++;
+            resolve();
+          };
         });
         img.src = `/slate/${i}.png`;
         imagePromises.push(promise);
       }
       
       await Promise.all(imagePromises);
+      console.log('All images preloaded successfully!');
       setImagesLoaded(true);
     };
     
@@ -73,6 +93,12 @@ export default function SlateCarAnimation() {
   }, []);
 
   const animate = (fromFrame, toFrame, callback) => {
+    if (!imagesLoaded) {
+      console.log('Images not loaded yet, skipping animation');
+      return;
+    }
+    
+    console.log(`Animating from frame ${fromFrame} to ${toFrame}`);
     setIsAnimating(true);
     let frame = fromFrame;
     const increment = fromFrame < toFrame ? 1 : -1;
@@ -82,13 +108,15 @@ export default function SlateCarAnimation() {
         setCurrentFrame(frame);
         clearInterval(intervalRef.current);
         setIsAnimating(false);
+        console.log(`Animation complete at frame ${frame}`);
         if (callback) callback();
         return;
       }
       
       setCurrentFrame(frame);
+      console.log(`Showing frame ${frame}`);
       frame += increment;
-    }, 24);
+    }, 16); // Reduced to ~60fps for smoother animation
   };
 
   const handleBubbleClick = (bubbleIndex) => {
