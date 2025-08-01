@@ -10,6 +10,7 @@ export default function SlateCarAnimation() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const intervalRef = useRef(null);
+  const imageCache = useRef(new Map()); // Persistent image cache
 
   const keyFrames = [1, 51, 102, 152, 202];
   const bubbleNames = ["The Blank Slate", "The Sunny Side", "The Doer", "Kind of a Big Teal", "Beach Bound"];
@@ -38,21 +39,23 @@ export default function SlateCarAnimation() {
     }
   ];
 
-  // Preload all car images
+  // Preload and cache all car images permanently
   useEffect(() => {
     const preloadImages = async () => {
-      console.log('Starting image preload...');
+      console.log('Starting image preload and caching...');
       const imagePromises = [];
       let loadedCount = 0;
       const totalImages = 202 + 5; // Updated to 202 based on your keyFrames
       
-      // Preload all car sequence images (1-202)
+      // Preload all car sequence images (1-202) and store in cache
       for (let i = 1; i <= 202; i++) {
         const img = new Image();
         const promise = new Promise((resolve) => {
           img.onload = () => {
+            // Store in persistent cache
+            imageCache.current.set(`car_${i}`, img);
             loadedCount++;
-            console.log(`Loaded ${loadedCount}/${totalImages} images`);
+            console.log(`Loaded and cached ${loadedCount}/${totalImages} images`);
             resolve();
           };
           img.onerror = () => {
@@ -65,13 +68,15 @@ export default function SlateCarAnimation() {
         imagePromises.push(promise);
       }
       
-      // Preload configuration preview images (1-5.png)
+      // Preload configuration preview images (1-5.png) and store in cache
       for (let i = 1; i <= 5; i++) {
         const img = new Image();
         const promise = new Promise((resolve) => {
           img.onload = () => {
+            // Store in persistent cache
+            imageCache.current.set(`preview_${i}`, img);
             loadedCount++;
-            console.log(`Loaded ${loadedCount}/${totalImages} images`);
+            console.log(`Loaded and cached ${loadedCount}/${totalImages} images`);
             resolve();
           };
           img.onerror = () => {
@@ -85,7 +90,7 @@ export default function SlateCarAnimation() {
       }
       
       await Promise.all(imagePromises);
-      console.log('All images preloaded successfully!');
+      console.log(`All images preloaded and cached! Cache size: ${imageCache.current.size}`);
       setImagesLoaded(true);
     };
     
@@ -116,7 +121,7 @@ export default function SlateCarAnimation() {
       setCurrentFrame(frame);
       console.log(`Showing frame ${frame}`);
       frame += increment;
-    }, 16); // Reduced to ~60fps for smoother animation
+    }, 24); // Reduced to ~60fps for smoother animation
   };
 
   const handleBubbleClick = (bubbleIndex) => {
@@ -154,7 +159,7 @@ export default function SlateCarAnimation() {
             </svg>
           </div>
           
-          <CarAnimation currentFrame={currentFrame} />
+          <CarAnimation currentFrame={currentFrame} imageCache={imageCache.current} />
           
           {/* Dynamic Content Below Car */}
           <div className="mt-16 text-center max-w-md">
@@ -228,7 +233,9 @@ export default function SlateCarAnimation() {
                             transition={{ duration: 0.3, ease: "easeOut" }}
                           >
                             <img 
-                              src={`/slate/${index + 1}.png`}
+                              src={imageCache.current.has(`preview_${index + 1}`) 
+                                ? imageCache.current.get(`preview_${index + 1}`).src 
+                                : `/slate/${index + 1}.png`}
                               alt={`Car stage ${index + 1}`}
                               className="w-full h-full object-contain"
                             />
