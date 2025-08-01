@@ -48,7 +48,7 @@ const timeZones = [
 
 export default function ClockPage() {
   return (
-    <main className="dark w-full ">
+    <main className="dark w-full bg-slate-950">
       <div className=" bg-slate-50 dark:bg-slate-950 p-6">
         <div className="m-6 flex flex-col justify-center items-center gap-1">
           <h1 className="text-3xl font-heading  dark:text-slate-100">World Clock</h1>

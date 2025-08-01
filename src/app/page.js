@@ -24,12 +24,11 @@ const experienceCards = [
     componentBackground: "bg-green-700 dark:bg-green-800/10"
   },
   {
-    component: ClockPreview,
-    heading: "World Clock",
-    description: "A visual represenation of all timezones",
+    image: "/thumbnails/slate_hero.gif",
+    heading: "Car Configuration",
+    description: "A beautiful car configuration experience",
     href: '/experiences/slate_cars',
     newTab: true,
-    componentBackground: "bg-green-700 dark:bg-green-800/10"
   },
 ];
 
