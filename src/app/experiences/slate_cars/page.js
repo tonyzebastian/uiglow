@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import CarAnimation from './CarAnimation';
 
@@ -8,9 +8,10 @@ export default function SlateCarAnimation() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedBubble, setSelectedBubble] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const intervalRef = useRef(null);
 
-  const keyFrames = [1, 51, 102, 152, 203];
+  const keyFrames = [1, 51, 102, 152, 202];
   const bubbleNames = ["The Blank Slate", "The Sunny Side", "The Doer", "Kind of a Big Teal", "Beach Bound"];
   const bodyTypes = ["Truck", "SUV Kit", "Truck", "Fastback SUV", "Open Air Kit"];
   
@@ -37,6 +38,40 @@ export default function SlateCarAnimation() {
     }
   ];
 
+  // Preload all car images
+  useEffect(() => {
+    const preloadImages = async () => {
+      const imagePromises = [];
+      
+      // Preload all car sequence images (1-203)
+      for (let i = 1; i <= 203; i++) {
+        const img = new Image();
+        const promise = new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if some images fail
+        });
+        img.src = `/slate/car_${i}.jpg`;
+        imagePromises.push(promise);
+      }
+      
+      // Preload configuration preview images (1-5.png)
+      for (let i = 1; i <= 5; i++) {
+        const img = new Image();
+        const promise = new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+        img.src = `/slate/${i}.png`;
+        imagePromises.push(promise);
+      }
+      
+      await Promise.all(imagePromises);
+      setImagesLoaded(true);
+    };
+    
+    preloadImages();
+  }, []);
+
   const animate = (fromFrame, toFrame, callback) => {
     setIsAnimating(true);
     let frame = fromFrame;
@@ -57,7 +92,7 @@ export default function SlateCarAnimation() {
   };
 
   const handleBubbleClick = (bubbleIndex) => {
-    if (isAnimating) return;
+    if (isAnimating || !imagesLoaded) return;
     
     const targetFrame = keyFrames[bubbleIndex];
     setSelectedBubble(bubbleIndex);
@@ -73,6 +108,15 @@ export default function SlateCarAnimation() {
       <div className="flex min-h-screen w-full border">
         {/* Left Column - Car Animation (White Background) */}
         <div className="flex-[3] bg-white flex flex-col justify-center items-center px-8 pt-8 relative" >
+          {/* Loading indicator */}
+          {!imagesLoaded && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800 mx-auto mb-4"></div>
+                <p className="text-slate-600 font-sans">Loading car images...</p>
+              </div>
+            </div>
+          )}
           {/* Slate Logo */}
           <div className="absolute top-12 left-14 z-10">
             <svg width="160" height="24" viewBox="0 0 217 29" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -135,7 +179,7 @@ export default function SlateCarAnimation() {
                           isSelected 
                             ? 'border-blue-600 bg-white shadow-md' 
                             : 'border-gray-200 hover:border-gray-300 hover:bg-white'
-                        } ${isAnimating ? 'cursor-not-allowed' : ''}`}
+                        } ${isAnimating || !imagesLoaded ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <div className="flex-1">
                           <div className={`font-semibold text-base font-sans pb-1 ${isSelected ? 'text-slate-950' : 'text-slate-900'}`}>
