@@ -1,4 +1,4 @@
-import Toolbar from "./Toolbar"
+import Toolbar from "./Toolbars"
 
 export default function ToolbarPage() {
   return (

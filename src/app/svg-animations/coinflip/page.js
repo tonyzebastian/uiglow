@@ -1,4 +1,4 @@
-import CoinFlip from "./CoinFlip";
+import CoinFlip from "./CoinFlips";
 
 export default function CoinFlipPage() {
   return (
