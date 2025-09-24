@@ -5,7 +5,7 @@ import BreathingTextComp from '@/components/effects/BreathingText';
 import ExperienceCard from '@/components/core/ExperienceCard';
 import ClockPreview from '@/components/previews/ClockPreview';
 import JellyTagsSingle from './ui-interactions/jellytags/JellyTagsSingle';
-import CoinFlip from './svg-animations/coinflip/coinflip';
+import CoinFlip from './svg-animations/coinflip/CoinFlip';
 
 const experienceCards = [
   {
@@ -27,7 +27,7 @@ const experienceCards = [
     image: "/thumbnails/slate_hero.gif",
     heading: "Car Configuration",
     description: "A beautiful car configuration experience",
-    href: '/experiences/slate_cars',
+    href: '/experiences/slate-cars',
     newTab: true,
   },
 ];

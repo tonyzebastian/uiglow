@@ -1,5 +1,5 @@
-import DownloadBtn from "./downloadbtn";
-import OutlineBtn from "./outlinebtn";
+import DownloadBtn from "./DownloadButton";
+import OutlineBtn from "./OutlineButton";
 
 export default function DownloadBtnPage() {
   return (

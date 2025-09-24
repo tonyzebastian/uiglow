@@ -5,8 +5,8 @@ import './fish.css';
 export default function Aquarium() {
   useEffect(() => {
     Promise.all([
-      import('./fish.jsx'),
-      import('./backgroundFish.jsx')
+      import('./Fish.jsx'),
+      import('./BackgroundFish.jsx')
     ]).then(([fishModule, backgroundModule]) => {
       const FishController = fishModule.default;
       const BackgroundFishController = backgroundModule.default;

@@ -1,4 +1,4 @@
-import Upvote from "./upvote"
+import Upvote from "./Upvote"
 import {
   Card,
   CardContent,
