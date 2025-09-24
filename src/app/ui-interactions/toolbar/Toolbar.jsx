@@ -2,9 +2,9 @@
 
 import { useState } from 'react'; 
 import { motion } from "motion/react";
-import Commit from './Commit';
-import Analytics from './Analytics';
-import Upgrade from './Upgrade';
+import Commit from './Commits';
+import Analytics from './Analyticss';
+import Upgrade from './Upgrades';
 
 
 export default function Toolbar() {
