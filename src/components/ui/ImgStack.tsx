@@ -1,21 +1,30 @@
 'use client'
 import { useState, useRef } from 'react';
-import Image from 'next/image';
-import { motion } from 'motion/react';
+import { motion, PanInfo } from 'motion/react';
 
-export default function ImgStack({ images }) {
-    const [cards, setCards] = useState(
+interface Card {
+  id: number;
+  src: string;
+  zIndex: number;
+}
+
+interface ImgStackProps {
+  images: string[];
+}
+
+export function ImgStack({ images }: ImgStackProps) {
+    const [cards, setCards] = useState<Card[]>(
         images.map((src, index) => ({
             id: index,
             src: src,
             zIndex: 50 - (index * 10)
         }))
     );
-    const [isAnimating, setIsAnimating] = useState(false);
-    const dragStartPos = useRef({ x: 0, y: 0 });
-    const minDragDistance = 50;
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
+    const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    const minDragDistance: number = 50;
 
-    const getCardStyles = (index) => {
+    const getCardStyles = (index: number) => {
         // Always return tiled state - no initial animation to prevent jumping
         const baseRotation = 2; // Base tilt angle
         const rotationIncrement = 3; // Additional tilt per card
@@ -28,15 +37,15 @@ export default function ImgStack({ images }) {
             // Keep first card straight (index 0), others get tilt
             rotate: index === 0 ? 0 : -(baseRotation + (index * rotationIncrement)),
             scale: 1,
-            transition: { duration: 0.5, ease: "easeOut" }
+            transition: { duration: 0.5 }
         };
     };
 
-    const handleDragStart = (_, info) => {
+    const handleDragStart = (_: any, info: PanInfo) => {
         dragStartPos.current = { x: info.point.x, y: info.point.y };
     };
 
-    const handleDragEnd = (_, info) => {
+    const handleDragEnd = (_: any, info: PanInfo) => {
         const dragDistance = Math.sqrt(
             Math.pow(info.point.x - dragStartPos.current.x, 2) +
             Math.pow(info.point.y - dragStartPos.current.y, 2)
@@ -54,7 +63,7 @@ export default function ImgStack({ images }) {
         // Move card to back and reassign proper z-index values
         setCards(prevCards => {
             const newCards = [...prevCards];
-            const cardToMove = newCards.shift(); // Remove first card
+            const cardToMove = newCards.shift()!; // Remove first card
             newCards.push(cardToMove); // Add to end
 
             // Reassign z-index values to maintain proper stacking order
@@ -72,7 +81,7 @@ export default function ImgStack({ images }) {
 
     return (
         <div className="relative flex items-center justify-center w-96 h-96 my-12">
-            {cards.map((card, index) => {
+            {cards.map((card: Card, index: number) => {
                 const isTopCard = index === 0;
                 const cardStyles = getCardStyles(index);
                 const canDrag = isTopCard && !isAnimating;
@@ -95,7 +104,7 @@ export default function ImgStack({ images }) {
                         onDragEnd={handleDragEnd}
                         whileHover={isTopCard ? {
                             scale: 1.05,
-                            transition: { duration: 0.2, ease: "easeOut" }
+                            transition: { duration: 0.2 }
                         } : {}}
                         whileDrag={{
                             scale: 1.1,
@@ -105,12 +114,10 @@ export default function ImgStack({ images }) {
                             transition: { duration: 0.1 }
                         }}
                     >
-                        <Image
+                        <img
                             src={card.src}
                             alt={`Card ${card.id + 1}`}
-                            fill
-                            className="object-cover rounded-xl pointer-events-none"
-                            sizes="(max-width: 768px) 100vw, 200px"
+                            className="w-full h-full object-cover p-2 rounded-xl pointer-events-none"
                             draggable={false}
                         />
                     </motion.div>
@@ -119,3 +126,5 @@ export default function ImgStack({ images }) {
         </div>
     );
 }
+
+export default ImgStack;
