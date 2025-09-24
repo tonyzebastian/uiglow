@@ -5,7 +5,7 @@ import BreathingTextComp from '@/components/effects/BreathingText';
 import ExperienceCard from '@/components/core/ExperienceCard';
 import ClockPreview from '@/components/previews/ClockPreview';
 import JellyTagsSingle from './ui-interactions/jellytags/JellyTagsSingle';
-import CoinFlip from './svg-animations/coinflip/CoinFlips';
+import CoinFlip from './svg-animations/coinflip/CoinFlip';
 
 const experienceCards = [
   {
