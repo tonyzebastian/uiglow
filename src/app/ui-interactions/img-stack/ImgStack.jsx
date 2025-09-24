@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 
@@ -12,31 +12,11 @@ export default function ImgStack({ images }) {
         }))
     );
     const [isAnimating, setIsAnimating] = useState(false);
-    const [isTiled, setIsTiled] = useState(false);
     const dragStartPos = useRef({ x: 0, y: 0 });
     const minDragDistance = 50;
 
-    // Auto-tile animation on mount
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsTiled(true);
-        }, 100);
-        return () => clearTimeout(timer);
-    }, []);
-
-    const getCardStyles = (index, isTiled) => {
-        if (!isTiled) {
-            // Perfect alignment state
-            return {
-                x: 0,
-                y: 0,
-                rotate: 0,
-                scale: 1, // Always reset scale to 1 in aligned position
-                transition: { duration: 1, ease: "easeInOut" }
-            };
-        }
-
-        // Tiled state with card-like positioning
+    const getCardStyles = (index) => {
+        // Always return tiled state - no initial animation to prevent jumping
         const baseRotation = 2; // Base tilt angle
         const rotationIncrement = 3; // Additional tilt per card
         const offsetIncrement = -12; // Horizontal offset per card
@@ -47,7 +27,7 @@ export default function ImgStack({ images }) {
             y: index * verticalOffset,
             // Keep first card straight (index 0), others get tilt
             rotate: index === 0 ? 0 : -(baseRotation + (index * rotationIncrement)),
-            scale: 1, // Always reset scale to 1 in tiled position
+            scale: 1,
             transition: { duration: 0.5, ease: "easeOut" }
         };
     };
@@ -94,7 +74,7 @@ export default function ImgStack({ images }) {
         <div className="relative flex items-center justify-center w-96 h-96 my-12">
             {cards.map((card, index) => {
                 const isTopCard = index === 0;
-                const cardStyles = getCardStyles(index, isTiled);
+                const cardStyles = getCardStyles(index);
                 const canDrag = isTopCard && !isAnimating;
 
                 return (
