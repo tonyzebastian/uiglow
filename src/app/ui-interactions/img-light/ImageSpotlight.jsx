@@ -35,6 +35,7 @@ export default function ImageSpotlight({
 
   // Component state
   const [isHovered, setIsHovered] = useState(false);
+  const [perspective, setPerspective] = useState({ rotateX: 0, rotateY: 0 });
 
   const containerRef = useRef(null);
 
@@ -50,6 +51,13 @@ export default function ImageSpotlight({
       // Update CSS variables for spotlight position
       containerRef.current.style.setProperty('--mouse-x', `${x}%`);
       containerRef.current.style.setProperty('--mouse-y', `${y}%`);
+
+      // Calculate 3D perspective rotation
+      // Map cursor position to rotation values (-8 to +8 degrees for subtle effect)
+      const rotateY = ((x - 50) / 50) * 8; // Left-right tilt
+      const rotateX = ((50 - y) / 50) * 8; // Up-down tilt (inverted for natural feel)
+
+      setPerspective({ rotateX, rotateY });
     }, 16), // 60fps throttling
     []
   );
@@ -62,6 +70,7 @@ export default function ImageSpotlight({
   // Mouse leave handler
   const handleMouseLeave = () => {
     setIsHovered(false);
+    setPerspective({ rotateX: 0, rotateY: 0 }); // Reset perspective when leaving
   };
 
   // Container classes and inline styles
@@ -113,7 +122,10 @@ export default function ImageSpotlight({
           '--mouse-x': '50%',
           '--mouse-y': '50%',
           '--spotlight-size': `${finalConfig.spotlightSize}px`,
-          '--overlay-opacity': finalConfig.overlayOpacity
+          '--overlay-opacity': finalConfig.overlayOpacity,
+          transform: `perspective(1000px) rotateX(${perspective.rotateX}deg) rotateY(${perspective.rotateY}deg)`,
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.2s ease-out'
         }}
       >
         {/* Hidden instructions for screen readers */}
