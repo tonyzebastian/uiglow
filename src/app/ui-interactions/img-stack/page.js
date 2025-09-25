@@ -2,11 +2,11 @@ import ImgStack from "./ImgStack"
 
 export default function ImgStackPage() {
   const imageUrls = [
-    '/ui/imgstack/1.jpg',
-    '/ui/imgstack/2.jpg',
-    '/ui/imgstack/3.jpg',
-    '/ui/imgstack/4.jpg',
-    '/ui/imgstack/5.jpg'
+    'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731403/1_d8uozd.jpg',
+    'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/5_ionpyy.jpg',
+    'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/4_zeoqje.jpg',
+    'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/2_hme6yu.jpg',
+    'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/3_nfdtim.jpg'
   ];
 
   return (

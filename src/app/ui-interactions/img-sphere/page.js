@@ -7,74 +7,74 @@ import SphereImageGrid from './SphereImageGrid'
 // Image data using project assets - duplicated to fill sphere better
 const BASE_IMAGES = [
   {
-    src: "/ui/imgstack/1.jpg",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731403/1_d8uozd.jpg",
     alt: "Image 1",
     title: "Mountain Landscape",
     description: "A beautiful landscape captured at golden hour with mountains in the background."
   },
   {
-    src: "/ui/imgstack/2.jpg",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/5_ionpyy.jpg",
     alt: "Image 2",
     title: "Portrait Photography",
     description: "Stunning portrait photography showcasing natural lighting and composition."
   },
   {
-    src: "/ui/imgstack/3.jpg",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/4_zeoqje.jpg",
     alt: "Image 3",
     title: "Urban Architecture",
     description: "Modern architectural design featuring clean lines and geometric patterns."
   },
   {
-    src: "/ui/imgstack/4.jpg",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/2_hme6yu.jpg",
     alt: "Image 4",
     title: "Nature Scene",
     description: "Peaceful nature scene with vibrant colors and natural beauty."
   },
   {
-    src: "/ui/imgstack/5.jpg",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/3_nfdtim.jpg",
     alt: "Image 5",
     title: "Abstract Art",
     description: "Creative abstract composition with bold colors and unique patterns."
   },
   {
-    src: "/ui/imgstack/6.jpg",
-    alt: "Image 1",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823070/11_c9flg6.jpg",
+    alt: "Image 6",
     title: "Mountain Landscape",
     description: "A beautiful landscape captured at golden hour with mountains in the background."
   },
   {
-    src: "/ui/imgstack/7.jpg",
-    alt: "Image 2",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/10_qujlpy.jpg",
+    alt: "Image 7",
     title: "Portrait Photography",
     description: "Stunning portrait photography showcasing natural lighting and composition."
   },
   {
-    src: "/ui/imgstack/8.jpg",
-    alt: "Image 3",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823070/8_hkn2jm.jpg",
+    alt: "Image 8",
     title: "Urban Architecture",
     description: "Modern architectural design featuring clean lines and geometric patterns."
   },
   {
-    src: "/ui/imgstack/9.jpg",
-    alt: "Image 4",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/6_li3ger.jpg",
+    alt: "Image 9",
     title: "Nature Scene",
     description: "Peaceful nature scene with vibrant colors and natural beauty."
   },
   {
-    src: "/ui/imgstack/10.jpg",
-    alt: "Image 5",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/12_kitql2.jpg",
+    alt: "Image 10",
     title: "Abstract Art",
     description: "Creative abstract composition with bold colors and unique patterns."
   },
   {
-    src: "/ui/imgstack/11.jpg",
-    alt: "Image 5",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/7_ojrozd.jpg",
+    alt: "Image 11",
     title: "Abstract Art",
     description: "Creative abstract composition with bold colors and unique patterns."
   },
   {
-    src: "/ui/imgstack/12.jpg",
-    alt: "Image 5",
+    src: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/9_gkuidt.jpg",
+    alt: "Image 12",
     title: "Abstract Art",
     description: "Creative abstract composition with bold colors and unique patterns."
   }
