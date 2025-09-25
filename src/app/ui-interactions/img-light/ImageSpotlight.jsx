@@ -92,7 +92,7 @@ export default function ImageSpotlight({
   };
 
   const containerClasses = `
-    relative overflow-hidden cursor-none rounded-lg shadow-md border border-slate-500
+    relative overflow-hidden cursor-none rounded-lg shadow-md border
     ${finalConfig.className}
   `.trim();
 
