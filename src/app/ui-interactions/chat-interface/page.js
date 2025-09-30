@@ -3,21 +3,30 @@
 import React from 'react';
 import ChatComponent from './ChatComponent';
 
+// ============================================================================
+// CHAT INTERFACE PAGE
+// ============================================================================
+
 const ChatInterface = () => {
   // ==========================================
-  // UI CONFIGURATION - Edit these values to customize the chat interface
+  // UI CONFIGURATION
   // ==========================================
   const uiConfig = {
+    // Container dimensions
     containerWidth: 500,                    // Width of the chat container in pixels
     containerHeight: 450,                   // Height of the chat container in pixels
     backgroundColor: '#F7F0E8',             // Main container background color
+
+    // Auto-restart settings
     autoRestart: true,                      // Enable/disable auto restart after all messages
     restartDelay: 3000,                     // Delay in ms before restarting (default: 3000ms / 3 seconds)
 
+    // Loading indicator
     loader: {
       dotColor: '#9ca3af'                   // Color of the loading dots
     },
 
+    // Link badges styling
     linkBubbles: {
       backgroundColor: '#f3f4f6',           // Link bubble background color
       textColor: '#374151',                 // Link bubble text color
@@ -25,22 +34,28 @@ const ChatInterface = () => {
       borderColor: '#e5e7eb'                // Link bubble border color
     },
 
+    // Left side chat bubbles
     leftChat: {
-      backgroundColor: '#FDF6EE',           // Left chat bubble background color
-      textColor: '#000000',                 // Left chat text color
-      borderColor: '#d1d1d1',              // Left chat border color
-      showBorder: true                      // Show/hide border for left chat bubbles
+      backgroundColor: '#FDF6EE',           // Background color
+      textColor: '#000000',                 // Text color
+      borderColor: '#d1d1d1',               // Border color
+      showBorder: true                      // Show/hide border
     },
 
+    // Right side chat bubbles
     rightChat: {
-      backgroundColor: '#F1E7DF',           // Right chat bubble background color
-      textColor: '#000000',                 // Right chat text color
-      borderColor: '#d1d1d1',              // Right chat border color
-      showBorder: true                      // Show/hide border for right chat bubbles
+      backgroundColor: '#F1E7DF',           // Background color
+      textColor: '#000000',                 // Text color
+      borderColor: '#d1d1d1',               // Border color
+      showBorder: true                      // Show/hide border
     }
   };
 
+  // ==========================================
+  // CHAT CONFIGURATION
+  // ==========================================
   const chatConfig = {
+    // Chat participants
     leftPerson: {
       name: "Tony",
       avatar: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/10_qujlpy.jpg"
@@ -49,6 +64,8 @@ const ChatInterface = () => {
       name: "Brendon",
       avatar: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/2_hme6yu.jpg"
     },
+
+    // Message sequence
     messages: [
       {
         id: 1,
