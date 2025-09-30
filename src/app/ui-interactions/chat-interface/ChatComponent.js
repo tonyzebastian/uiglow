@@ -1,8 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link2 } from 'lucide-react';
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Convert hex color to rgba with specified alpha
+ */
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 // ============================================================================
 // HELPER COMPONENTS
@@ -12,7 +26,7 @@ import { Link2 } from 'lucide-react';
  * Animated loading indicator with bouncing dots
  * @param {string} dotColor - Color of the loading dots
  */
-const MessageLoader = ({ dotColor = '#9ca3af' }) => {
+const MessageLoader = React.memo(({ dotColor = '#9ca3af' }) => {
   const dotAnimation = {
     y: [0, -6, 0]
   };
@@ -42,12 +56,14 @@ const MessageLoader = ({ dotColor = '#9ca3af' }) => {
       ))}
     </motion.div>
   );
-};
+});
+
+MessageLoader.displayName = 'MessageLoader';
 
 /**
  * Link badge component for displaying clickable links (non-functional, just visual)
  */
-const LinkBadge = ({ link, linkStyle }) => (
+const LinkBadge = React.memo(({ link, linkStyle }) => (
   <div
     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border"
     style={{
@@ -59,7 +75,9 @@ const LinkBadge = ({ link, linkStyle }) => (
     <Link2 size={12} color={linkStyle.iconColor} />
     <span>{link.text}</span>
   </div>
-);
+));
+
+LinkBadge.displayName = 'LinkBadge';
 
 // ============================================================================
 // MESSAGE BUBBLE COMPONENT
@@ -69,7 +87,7 @@ const LinkBadge = ({ link, linkStyle }) => (
  * Message bubble that displays different content types (text, image, text-with-links)
  * Handles smooth transition from loader to content
  */
-const MessageBubble = ({ message, isLeft, uiConfig, onContentReady, isLoading, isVisible }) => {
+const MessageBubble = React.memo(({ message, isLeft, uiConfig, onContentReady, isLoading, isVisible }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const chatStyle = isLeft ? uiConfig.leftChat : uiConfig.rightChat;
 
@@ -81,18 +99,18 @@ const MessageBubble = ({ message, isLeft, uiConfig, onContentReady, isLoading, i
   }, [isVisible, message.type, onContentReady]);
 
   // Handle image load completion
-  const handleImageLoad = () => {
+  const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
     onContentReady?.();
-  };
+  }, [onContentReady]);
 
-  // Bubble styling
-  const bubbleStyle = {
+  // Memoize bubble styling
+  const bubbleStyle = useMemo(() => ({
     backgroundColor: chatStyle.backgroundColor,
     color: chatStyle.textColor,
     borderColor: chatStyle.borderColor,
     borderWidth: chatStyle.showBorder ? '0.5px' : '0'
-  };
+  }), [chatStyle.backgroundColor, chatStyle.textColor, chatStyle.borderColor, chatStyle.showBorder]);
 
   const roundedClass = isLeft
     ? "rounded-br-lg rounded-tl-lg rounded-tr-lg" // Left: rounded except bottom-left
@@ -166,7 +184,9 @@ const MessageBubble = ({ message, isLeft, uiConfig, onContentReady, isLoading, i
       </AnimatePresence>
     </div>
   );
-};
+});
+
+MessageBubble.displayName = 'MessageBubble';
 
 // ============================================================================
 // MESSAGE WRAPPER COMPONENT
@@ -179,7 +199,7 @@ const MessageBubble = ({ message, isLeft, uiConfig, onContentReady, isLoading, i
  * - Username display for message groups
  * - Completion tracking
  */
-const MessageWrapper = ({
+const MessageWrapper = React.memo(({
   message,
   config,
   uiConfig,
@@ -207,14 +227,16 @@ const MessageWrapper = ({
     if (!previousMessageComplete) return;
 
     const { loader } = message;
+    const loaderDelay = 500;
+    const totalDelay = loaderDelay + (loader?.duration || 1000);
 
     if (loader?.enabled) {
-      const loaderTimeout = setTimeout(() => setIsLoading(true), 500);
+      const loaderTimeout = setTimeout(() => setIsLoading(true), loaderDelay);
       const messageTimeout = setTimeout(() => {
         setIsLoading(false);
         setIsVisible(true);
         onVisibilityChange?.(message.id);
-      }, 500 + (loader.duration || 1000));
+      }, totalDelay);
 
       return () => {
         clearTimeout(loaderTimeout);
@@ -231,17 +253,18 @@ const MessageWrapper = ({
   }, [message, previousMessageComplete, onVisibilityChange]);
 
   // Notify parent when content is fully loaded
-  const handleContentReady = () => {
+  const handleContentReady = useCallback(() => {
     if (!messageCompleted) {
       setMessageCompleted(true);
-      setTimeout(() => onMessageComplete?.(), 350); // Match animation duration
+      setTimeout(() => onMessageComplete?.(message.id), 350); // Match animation duration
     }
-  };
+  }, [messageCompleted, onMessageComplete, message.id]);
 
-  // Layout classes
-  const messageClass = isLeft
-    ? "flex items-end gap-3"
-    : "flex items-end gap-3 flex-row-reverse";
+  // Memoize layout classes
+  const messageClass = useMemo(() =>
+    isLeft ? "flex items-end gap-3" : "flex items-end gap-3 flex-row-reverse",
+    [isLeft]
+  );
 
   if (!isLoading && !isVisible) return null;
 
@@ -266,39 +289,39 @@ const MessageWrapper = ({
       </AnimatePresence>
 
       {/* Message content */}
-      {(isLoading || isVisible) && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="flex flex-col"
-          style={{ alignItems: isLeft ? 'flex-start' : 'flex-end' }}
-        >
-          {/* Username (only for first message in group) */}
-          {!isContinuation && (
-            <motion.div
-              className="text-xs text-orange-950 mb-1 leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.15, duration: 0.25 }}
-            >
-              {person.name}
-            </motion.div>
-          )}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="flex flex-col"
+        style={{ alignItems: isLeft ? 'flex-start' : 'flex-end' }}
+      >
+        {/* Username (only for first message in group) */}
+        {!isContinuation && (
+          <motion.div
+            className="text-xs text-orange-950 mb-1 leading-relaxed"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.25 }}
+          >
+            {person.name}
+          </motion.div>
+        )}
 
-          <MessageBubble
-            message={message}
-            isLeft={isLeft}
-            uiConfig={uiConfig}
-            onContentReady={handleContentReady}
-            isLoading={isLoading}
-            isVisible={isVisible}
-          />
-        </motion.div>
-      )}
+        <MessageBubble
+          message={message}
+          isLeft={isLeft}
+          uiConfig={uiConfig}
+          onContentReady={handleContentReady}
+          isLoading={isLoading}
+          isVisible={isVisible}
+        />
+      </motion.div>
     </div>
   );
-};
+});
+
+MessageWrapper.displayName = 'MessageWrapper';
 
 // ============================================================================
 // MAIN CHAT COMPONENT
@@ -352,7 +375,7 @@ const ChatComponent = ({ config, uiConfig }) => {
   // EVENT HANDLERS
   // ============================================================================
 
-  const handleMessageComplete = (messageId) => {
+  const handleMessageComplete = useCallback((messageId) => {
     setCompletedMessages(prev => {
       const newCompleted = [...prev, messageId];
 
@@ -367,21 +390,21 @@ const ChatComponent = ({ config, uiConfig }) => {
 
       return newCompleted;
     });
-  };
+  }, [config.messages.length, ui.autoRestart, ui.restartDelay]);
 
-  const handleVisibilityChange = (messageId) => {
+  const handleVisibilityChange = useCallback((messageId) => {
     setVisibleMessages(prev =>
       prev.includes(messageId) ? prev : [...prev, messageId]
     );
-  };
+  }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'end',
       inline: 'nearest'
     });
-  };
+  }, []);
 
   // ============================================================================
   // EFFECTS
@@ -399,22 +422,20 @@ const ChatComponent = ({ config, uiConfig }) => {
     }
 
     return () => observer.disconnect();
-  }, [key]);
+  }, [key, scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [config.messages, completedMessages]);
+  }, [config.messages, completedMessages, scrollToBottom]);
 
   // ============================================================================
-  // UTILITY FUNCTIONS
+  // MEMOIZED VALUES
   // ============================================================================
 
-  const hexToRgba = (hex, alpha) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
+  // Memoize gradient background to avoid recalculating on every render
+  const gradientBackground = useMemo(() => {
+    return `linear-gradient(to bottom, ${hexToRgba(ui.backgroundColor, 1)} 0%, ${hexToRgba(ui.backgroundColor, 0.95)} 20%, ${hexToRgba(ui.backgroundColor, 0.8)} 40%, ${hexToRgba(ui.backgroundColor, 0.4)} 70%, ${hexToRgba(ui.backgroundColor, 0)} 100%)`;
+  }, [ui.backgroundColor]);
 
   // ============================================================================
   // RENDER
@@ -433,9 +454,7 @@ const ChatComponent = ({ config, uiConfig }) => {
       {/* Top gradient fade overlay */}
       <div
         className="absolute top-0 left-0 right-0 h-32 pointer-events-none z-10 rounded-t-lg"
-        style={{
-          background: `linear-gradient(to bottom, ${hexToRgba(ui.backgroundColor, 1)} 0%, ${hexToRgba(ui.backgroundColor, 0.95)} 20%, ${hexToRgba(ui.backgroundColor, 0.8)} 40%, ${hexToRgba(ui.backgroundColor, 0.4)} 70%, ${hexToRgba(ui.backgroundColor, 0)} 100%)`
-        }}
+        style={{ background: gradientBackground }}
       />
 
       {/* Scrollable messages container */}
@@ -473,7 +492,7 @@ const ChatComponent = ({ config, uiConfig }) => {
                   config={config}
                   uiConfig={ui}
                   previousMessageComplete={previousMessageComplete}
-                  onMessageComplete={() => handleMessageComplete(message.id)}
+                  onMessageComplete={handleMessageComplete}
                   onVisibilityChange={handleVisibilityChange}
                   previousMessage={previousMessage}
                   nextMessage={nextMessage}
