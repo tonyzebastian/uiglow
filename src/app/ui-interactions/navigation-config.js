@@ -8,4 +8,5 @@ export const navItems = [
     { label: "Music Player",   href: "/ui-interactions/music-player" },
     { label: "Toolbar",        href: "/ui-interactions/toolbar" },
     { label: "Download Button",href: "/ui-interactions/btn-variations" },
+    { label: "Chat Interface", href: "/ui-interactions/chat-interface" },
   ];
