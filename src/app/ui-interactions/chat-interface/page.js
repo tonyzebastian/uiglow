@@ -13,9 +13,9 @@ const ChatInterface = () => {
   // ==========================================
   const uiConfig = {
     // Container dimensions
-    containerWidth: 500,                    // Width of the chat container in pixels
+    containerWidth: 550,                    // Width of the chat container in pixels
     containerHeight: 450,                   // Height of the chat container in pixels
-    backgroundColor: '#F7F0E8',             // Main container background color
+    backgroundColor: '#F5EBE0',             // Main container background color
 
     // Auto-restart settings
     autoRestart: true,                      // Enable/disable auto restart after all messages
@@ -23,31 +23,33 @@ const ChatInterface = () => {
 
     // Loading indicator
     loader: {
-      dotColor: '#9ca3af'                   // Color of the loading dots
+      dotColor: '#936639'                   // Color of the loading dots
     },
 
     // Link badges styling
     linkBubbles: {
-      backgroundColor: '#f3f4f6',           // Link bubble background color
-      textColor: '#374151',                 // Link bubble text color
-      iconColor: '#374151',                 // Link bubble icon color
-      borderColor: '#e5e7eb'                // Link bubble border color
+      backgroundColor: '#F5EBE0',           // Link bubble background color
+      textColor: '#936639',                 // Link bubble text color
+      iconColor: '#936639',                 // Link bubble icon color
+      borderColor: '#F5EBE0'                // Link bubble border color
     },
 
     // Left side chat bubbles
     leftChat: {
       backgroundColor: '#FDF6EE',           // Background color
-      textColor: '#000000',                 // Text color
-      borderColor: '#d1d1d1',               // Border color
-      showBorder: true                      // Show/hide border
+      textColor: '#582F0E',                 // Text color
+      borderColor: '#E3D5CA',               // Border color
+      showBorder: true,                     // Show/hide border
+      nameColor: '#936639'                  // Name/username color
     },
 
     // Right side chat bubbles
     rightChat: {
-      backgroundColor: '#F1E7DF',           // Background color
-      textColor: '#000000',                 // Text color
+      backgroundColor: '#EDE0D4',           // Background color
+      textColor: '#582F0E',                 // Text color
       borderColor: '#d1d1d1',               // Border color
-      showBorder: true                      // Show/hide border
+      showBorder: false,                    // Show/hide border
+      nameColor: '#936639'                  // Name/username color
     }
   };
 
@@ -72,6 +74,7 @@ const ChatInterface = () => {
         sender: 'left',
         type: 'text',
         content: 'Hey! Did you see the latest project updates?',
+        maxWidth: 'max-w-sm',  // Optional: max-w-xs, max-w-sm, max-w-md, max-w-lg, max-w-xl, or custom like 'max-w-[300px]'
         loader: {
           enabled: true,
           delay: 1000,
@@ -93,7 +96,8 @@ const ChatInterface = () => {
         id: 3,
         sender: 'left',
         type: 'text-with-links',
-        content: 'Here are some useful resources I found:',
+        content: 'We\'re on track to complete it by the end of the quarter.',
+        maxWidth: 'max-w-xs', 
         links: [
           {
             text: 'Substack'
@@ -111,6 +115,17 @@ const ChatInterface = () => {
       {
         id: 4,
         sender: 'left',
+        type: 'image',
+        content: 'https://res.cloudinary.com/dctgknnt7/image/upload/v1758636253/cld-sample.jpg',
+        loader: {
+          enabled: false,
+          delay: 10500,
+          duration: 2000
+        }
+      },
+      {
+        id: 5,
+        sender: 'right',
         type: 'text',
         content: 'These look great! Thanks for sharing.',
         loader: {
@@ -119,17 +134,6 @@ const ChatInterface = () => {
           duration: 1200
         }
       },
-      {
-        id: 5,
-        sender: 'left',
-        type: 'image',
-        content: 'https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/12_kitql2.jpg',
-        loader: {
-          enabled: true,
-          delay: 10500,
-          duration: 2000
-        }
-      }
     ]
   };
 

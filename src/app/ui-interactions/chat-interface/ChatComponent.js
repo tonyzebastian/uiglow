@@ -65,7 +65,7 @@ MessageLoader.displayName = 'MessageLoader';
  */
 const LinkBadge = React.memo(({ link, linkStyle }) => (
   <div
-    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border"
+    className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs border tracking-wider"
     style={{
       backgroundColor: linkStyle.backgroundColor,
       color: linkStyle.textColor,
@@ -116,9 +116,13 @@ const MessageBubble = React.memo(({ message, isLeft, uiConfig, onContentReady, i
     ? "rounded-br-lg rounded-tl-lg rounded-tr-lg" // Left: rounded except bottom-left
     : "rounded-bl-lg rounded-tl-lg rounded-tr-lg"; // Right: rounded except bottom-right
 
+  // Always use minimal padding for images, adjust content spacing internally
+  const paddingClass = message.type === 'image' ? 'p-1' : 'p-4';
+  const maxWidthClass = message.maxWidth || 'max-w-sm';
+
   return (
     <div
-      className={`${roundedClass} p-4 max-w-sm border-solid relative`}
+      className={`${roundedClass} ${paddingClass} ${maxWidthClass} border-solid relative`}
       style={bubbleStyle}
     >
       <AnimatePresence mode="wait">
@@ -130,7 +134,7 @@ const MessageBubble = React.memo(({ message, isLeft, uiConfig, onContentReady, i
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center justify-center"
+            className={message.type === 'image' ? 'flex items-center justify-center p-3' : 'flex items-center justify-center'}
           >
             <MessageLoader dotColor={uiConfig.loader?.dotColor} />
           </motion.div>
@@ -151,7 +155,7 @@ const MessageBubble = React.memo(({ message, isLeft, uiConfig, onContentReady, i
 
             {/* Image message */}
             {message.type === 'image' && (
-              <div className="relative">
+              <div className="relative min-h-32">
                 {!imageLoaded && (
                   <div className="w-full h-32 flex items-center justify-center">
                     <MessageLoader dotColor={uiConfig.loader?.dotColor} />
@@ -160,7 +164,7 @@ const MessageBubble = React.memo(({ message, isLeft, uiConfig, onContentReady, i
                 <img
                   src={message.content}
                   alt="Chat image"
-                  className={`rounded max-w-full max-h-64 h-auto object-cover ${!imageLoaded ? 'hidden' : ''}`}
+                  className={`rounded max-h-full max-w-48 h-auto object-cover ${!imageLoaded ? 'hidden' : ''}`}
                   onLoad={handleImageLoad}
                 />
               </div>
@@ -216,6 +220,7 @@ const MessageWrapper = React.memo(({
 
   const isLeft = message.sender === 'left';
   const person = isLeft ? config.leftPerson : config.rightPerson;
+  const chatStyle = isLeft ? uiConfig.leftChat : uiConfig.rightChat;
 
   // Message grouping logic
   const isContinuation = previousMessage?.sender === message.sender;
@@ -277,7 +282,7 @@ const MessageWrapper = React.memo(({
             key="avatar"
             src={person.avatar}
             alt={person.name}
-            className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-[0.5px] border-white"
+            className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-[1.5px] border-white"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
@@ -299,7 +304,8 @@ const MessageWrapper = React.memo(({
         {/* Username (only for first message in group) */}
         {!isContinuation && (
           <motion.div
-            className="text-xs text-orange-950 mb-1 leading-relaxed"
+            className="text-xs mb-1 leading-relaxed"
+            style={{ color: chatStyle.nameColor || '#582F0E' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.25 }}
@@ -359,13 +365,15 @@ const ChatComponent = ({ config, uiConfig }) => {
       backgroundColor: '#ffffff',
       textColor: '#000000',
       borderColor: '#d1d1d1',
-      showBorder: true
+      showBorder: true,
+      nameColor: '#000000'
     },
     rightChat: {
       backgroundColor: '#ffffff',
       textColor: '#000000',
       borderColor: '#d1d1d1',
-      showBorder: true
+      showBorder: true,
+      nameColor: '#000000'
     }
   };
 
