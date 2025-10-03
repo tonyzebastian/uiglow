@@ -13,8 +13,8 @@ const ChatInterface = () => {
   // ==========================================
   const uiConfig = {
     // Container dimensions
-    containerWidth: 550,                    // Width of the chat container in pixels
-    containerHeight: 450,                   // Height of the chat container in pixels
+    containerWidth: 750,                    // Width of the chat container in pixels
+    containerHeight: 500,                   // Height of the chat container in pixels
     backgroundColor: '#F5EBE0',             // Main container background color
 
     // Auto-restart settings
@@ -97,7 +97,7 @@ const ChatInterface = () => {
         sender: 'left',
         type: 'text-with-links',
         content: 'We\'re on track to complete it by the end of the quarter.',
-        maxWidth: 'max-w-xs', 
+        maxWidth: 'max-w-md', 
         links: [
           {
             text: 'Substack'

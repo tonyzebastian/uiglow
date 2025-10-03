@@ -6,4 +6,5 @@ export const navItems = [
     { label: "Upvote",         href: "/ui-interactions/upvote" },
     { label: "Download Button",href: "/ui-interactions/btn-variations" },
     { label: "Chat Interface", href: "/ui-interactions/chat-interface" },
+    { label: "Drawing Canvas", href: "/ui-interactions/draw-canvas" },
   ];
