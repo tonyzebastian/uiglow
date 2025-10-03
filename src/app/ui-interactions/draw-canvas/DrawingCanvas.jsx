@@ -1,40 +1,108 @@
 'use client';
 
-import { useRef, useState, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useRef, useState, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Trash2, Download, Upload } from 'lucide-react';
 
+// Constants
+const CORNER_RADIUS = 12;
+const DOT_SPACING = 20;
+const DOT_SIZE = 2;
+const MAX_GRID_COLUMNS = 3;
+const SHADOW_CONFIG = {
+  color: 'rgba(0, 0, 0, 0.1)',
+  blur: 15,
+  offsetX: 0,
+  offsetY: 4
+};
+
+// Helper: Draw rounded rectangle path
+const drawRoundedRectPath = (ctx, x, y, width, height, radius) => {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+};
+
 const DrawingCanvas = forwardRef(({
-  width = 1200,
-  height = 800,
-  backgroundImages = [],
-  strokeColor = '#000000',
-  strokeWidth = 2,
-  padding = 40,
-  imageSize = 600,
-  imagePadding = 20,
-  imageGap = 20,
-  showImageShadow = true,
-  showDottedPattern = true,
-  canvasBorderColor = '#d1d5db',
-  showUploadButton = true,
-  showClearButton = true,
-  showSaveButton = true,
-  showImages = true
+  // Canvas config
+  canvasConfig = {
+    width: 1200,
+    height: 800,
+    borderColor: '#d1d5db',
+    showDottedPattern: true
+  },
+  // Image config
+  imageConfig = {
+    urls: [],
+    size: 600,
+    padding: 20,
+    gap: 20,
+    showShadow: true,
+    showImages: true
+  },
+  // Drawing config
+  drawingConfig = {
+    strokeColor: '#000000',
+    strokeWidth: 2
+  },
+  // Button config
+  buttonConfig = {
+    showUpload: true,
+    showClear: true,
+    showSave: true
+  }
 }, ref) => {
+  // Destructure configs with defaults
+  const {
+    width = 1200,
+    height = 800,
+    borderColor = '#d1d5db',
+    showDottedPattern = true
+  } = canvasConfig;
+
+  const {
+    urls = [],
+    size: imageSize = 600,
+    padding: imagePadding = 20,
+    gap: imageGap = 20,
+    showShadow: showImageShadow = true,
+    showImages = true
+  } = imageConfig;
+
+  const {
+    strokeColor = '#000000',
+    strokeWidth = 2
+  } = drawingConfig;
+
+  const {
+    showUpload = true,
+    showClear = true,
+    showSave = true
+  } = buttonConfig;
+
+  // State
   const [isDrawing, setIsDrawing] = useState(false);
   const [backgroundImagesData, setBackgroundImagesData] = useState([]);
   const [isHovering, setIsHovering] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
+
+  // Refs
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
+  const ctxRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Draw white background with optional dotted pattern
-  const drawBackground = () => {
+  const drawBackground = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
 
     // Fill white background
     ctx.fillStyle = '#ffffff';
@@ -43,45 +111,24 @@ const DrawingCanvas = forwardRef(({
     // Draw dotted pattern if enabled
     if (showDottedPattern) {
       ctx.fillStyle = '#d1d5db';
-      const spacing = 20;
-      for (let x = 0; x < canvas.width; x += spacing) {
-        for (let y = 0; y < canvas.height; y += spacing) {
-          ctx.fillRect(x, y, 2, 2);
+      for (let x = 0; x < canvas.width; x += DOT_SPACING) {
+        for (let y = 0; y < canvas.height; y += DOT_SPACING) {
+          ctx.fillRect(x, y, DOT_SIZE, DOT_SIZE);
         }
       }
     }
-  };
-
-  // Initialize canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = strokeWidth;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    // Always draw background (white + dotted pattern)
-    drawBackground();
-  }, [width, height, strokeColor, strokeWidth]);
+  }, [showDottedPattern]);
 
   // Helper function to draw a single image with padding and shadow
-  const drawSingleImage = (ctx, img, x, y, imgWidth, imgHeight) => {
-    const cornerRadius = 12;
-
+  const drawSingleImage = useCallback((ctx, img, x, y, imgWidth, imgHeight) => {
     // Draw white padding and shadow if enabled
     if (imagePadding > 0) {
       // Set shadow if enabled
       if (showImageShadow) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 4;
+        ctx.shadowColor = SHADOW_CONFIG.color;
+        ctx.shadowBlur = SHADOW_CONFIG.blur;
+        ctx.shadowOffsetX = SHADOW_CONFIG.offsetX;
+        ctx.shadowOffsetY = SHADOW_CONFIG.offsetY;
       }
 
       ctx.fillStyle = '#ffffff';
@@ -92,17 +139,7 @@ const DrawingCanvas = forwardRef(({
       const rectWidth = imgWidth + (imagePadding * 2);
       const rectHeight = imgHeight + (imagePadding * 2);
 
-      ctx.beginPath();
-      ctx.moveTo(rectX + cornerRadius, rectY);
-      ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
-      ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius);
-      ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
-      ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight);
-      ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
-      ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius);
-      ctx.lineTo(rectX, rectY + cornerRadius);
-      ctx.quadraticCurveTo(rectX, rectY, rectX + cornerRadius, rectY);
-      ctx.closePath();
+      drawRoundedRectPath(ctx, rectX, rectY, rectWidth, rectHeight, CORNER_RADIUS);
       ctx.fill();
     }
 
@@ -114,49 +151,59 @@ const DrawingCanvas = forwardRef(({
 
     // Clip to rounded rectangle for image
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x + cornerRadius, y);
-    ctx.lineTo(x + imgWidth - cornerRadius, y);
-    ctx.quadraticCurveTo(x + imgWidth, y, x + imgWidth, y + cornerRadius);
-    ctx.lineTo(x + imgWidth, y + imgHeight - cornerRadius);
-    ctx.quadraticCurveTo(x + imgWidth, y + imgHeight, x + imgWidth - cornerRadius, y + imgHeight);
-    ctx.lineTo(x + cornerRadius, y + imgHeight);
-    ctx.quadraticCurveTo(x, y + imgHeight, x, y + imgHeight - cornerRadius);
-    ctx.lineTo(x, y + cornerRadius);
-    ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
-    ctx.closePath();
+    drawRoundedRectPath(ctx, x, y, imgWidth, imgHeight, CORNER_RADIUS);
     ctx.clip();
 
     // Draw image with rounded corners
     ctx.drawImage(img, x, y, imgWidth, imgHeight);
 
     ctx.restore();
-  };
+  }, [imagePadding, showImageShadow]);
+
+  // Initialize canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    ctxRef.current = ctx;
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = strokeWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    drawBackground();
+  }, [width, height, strokeColor, strokeWidth, drawBackground]);
 
   // Load background images (from props or uploaded)
   useEffect(() => {
-    const imageSources = uploadedImages.length > 0 ? uploadedImages : backgroundImages;
+    const imageSources = uploadedImages.length > 0 ? uploadedImages : urls;
 
     if (!showImages || !imageSources || imageSources.length === 0) {
       setBackgroundImagesData([]);
-      const canvas = canvasRef.current;
-      if (canvas) {
-        drawBackground();
-      }
+      drawBackground();
       return;
     }
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
 
     const loadedImages = [];
     let loadedCount = 0;
+    let isMounted = true;
 
     imageSources.forEach((src, index) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
 
       img.onload = () => {
+        if (!isMounted) return;
+
         // Calculate scaled dimensions
         const scale = Math.min(imageSize / img.width, imageSize / img.height);
         const imgWidth = img.width * scale;
@@ -172,12 +219,10 @@ const DrawingCanvas = forwardRef(({
 
         // When all images are loaded, calculate grid and draw
         if (loadedCount === imageSources.length) {
-          const ctx = canvas.getContext('2d');
           drawBackground();
 
-          const maxCols = 3;
           const numImages = loadedImages.length;
-          const cols = Math.min(numImages, maxCols);
+          const cols = Math.min(numImages, MAX_GRID_COLUMNS);
           const rows = Math.ceil(numImages / cols);
 
           // Calculate grid dimensions
@@ -209,10 +254,7 @@ const DrawingCanvas = forwardRef(({
               x,
               y,
               width: imgData.width,
-              height: imgData.height,
-              padding: imagePadding,
-              cornerRadius: 12,
-              showShadow: showImageShadow
+              height: imgData.height
             });
           });
 
@@ -220,50 +262,58 @@ const DrawingCanvas = forwardRef(({
         }
       };
 
+      img.onerror = () => {
+        console.error(`Failed to load image: ${src}`);
+        loadedCount++;
+      };
+
       img.src = src;
     });
-  }, [backgroundImages, uploadedImages, imageSize, imagePadding, showImageShadow, imageGap, showImages]);
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+    };
+  }, [urls, uploadedImages, imageSize, imagePadding, showImageShadow, imageGap, showImages, drawBackground, drawSingleImage]);
 
   // Mouse event handlers
-  const startDrawing = (e) => {
+  const startDrawing = useCallback((e) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const ctx = canvas.getContext('2d');
     ctx.beginPath();
     ctx.moveTo(x, y);
     setIsDrawing(true);
-  };
+  }, []);
 
-  const draw = (e) => {
+  const draw = useCallback((e) => {
     if (!isDrawing) return;
 
+    const ctx = ctxRef.current;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !ctx) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const ctx = canvas.getContext('2d');
     ctx.lineTo(x, y);
     ctx.stroke();
-  };
+  }, [isDrawing]);
 
-  const stopDrawing = () => {
+  const stopDrawing = useCallback(() => {
     setIsDrawing(false);
-  };
+  }, []);
 
   // Clear canvas (removes only drawings, keeps background and images)
-  const handleClear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
+  const handleClear = useCallback(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
 
     // Redraw background (white + dotted pattern)
     drawBackground();
@@ -273,10 +323,10 @@ const DrawingCanvas = forwardRef(({
       const { img, x, y, width, height } = imgData;
       drawSingleImage(ctx, img, x, y, width, height);
     });
-  };
+  }, [backgroundImagesData, drawBackground, drawSingleImage]);
 
   // Save canvas
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -285,10 +335,10 @@ const DrawingCanvas = forwardRef(({
     link.download = `drawing-${Date.now()}.png`;
     link.href = dataURL;
     link.click();
-  };
+  }, []);
 
   // Handle image upload (supports multiple files)
-  const handleImageUpload = (e) => {
+  const handleImageUpload = useCallback((e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -305,23 +355,22 @@ const DrawingCanvas = forwardRef(({
     Promise.all(readers).then(results => {
       setUploadedImages(results);
     });
-  };
+  }, []);
 
   // Trigger file input click
-  const handleUploadClick = () => {
+  const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     clearCanvas: handleClear,
     saveCanvas: handleSave,
     getCanvasDataURL: () => canvasRef.current?.toDataURL('image/png')
-  }));
+  }), [handleClear, handleSave]);
 
   return (
     <div
-      ref={containerRef}
       className="relative inline-block"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -335,7 +384,7 @@ const DrawingCanvas = forwardRef(({
         className="border cursor-crosshair rounded-lg"
         style={{
           display: 'block',
-          borderColor: canvasBorderColor
+          borderColor
         }}
       />
 
@@ -355,7 +404,7 @@ const DrawingCanvas = forwardRef(({
           isHovering ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        {showUploadButton && (
+        {showUpload && (
           <button
             onClick={handleUploadClick}
             className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-lg border border-gray-200"
@@ -364,7 +413,7 @@ const DrawingCanvas = forwardRef(({
             <Upload size={20} />
           </button>
         )}
-        {showClearButton && (
+        {showClear && (
           <button
             onClick={handleClear}
             className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-lg border border-gray-200"
@@ -373,7 +422,7 @@ const DrawingCanvas = forwardRef(({
             <Trash2 size={20} />
           </button>
         )}
-        {showSaveButton && (
+        {showSave && (
           <button
             onClick={handleSave}
             className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg shadow-lg"
