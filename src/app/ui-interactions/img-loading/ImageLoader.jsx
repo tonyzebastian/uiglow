@@ -8,26 +8,54 @@ export default function ImageLoader({
   gridSize = 20,
   cellShape = "circle",
   cellGap = 2,
+  cellColor = "#cbd5e1",
   blinkSpeed = 1000,
   transitionDuration = 800,
   fadeOutDuration = 600,
+  loadingDelay = 1500,
   onLoad = () => {},
-  className = ""
+  className = "",
+  width,
+  height
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [gridCells, setGridCells] = useState([])
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const containerRef = useRef(null)
   const imageRef = useRef(null)
   const imageLoadedRef = useRef(false)
+  const hasInitializedRef = useRef(false)
 
-  // Initialize grid immediately with estimated dimensions
+  // Initialize dimensions from image element or props
   useEffect(() => {
+    if (!hasInitializedRef.current && imageRef.current) {
+      // Try to get dimensions from the image element
+      const img = imageRef.current
+      if (img.complete && img.naturalWidth > 0) {
+        // Image already loaded, use its dimensions
+        const w = img.offsetWidth || parseInt(width) || img.naturalWidth
+        const h = img.offsetHeight || parseInt(height) || img.naturalHeight
+        setDimensions({ width: w, height: h })
+        hasInitializedRef.current = true
+      } else {
+        // Use prop dimensions or default
+        const w = parseInt(width) || 800
+        const h = parseInt(height) || 600
+        setDimensions({ width: w, height: h })
+        hasInitializedRef.current = true
+      }
+    }
+  }, [width, height])
+
+  // Generate grid when dimensions are set
+  useEffect(() => {
+    if (dimensions.width === 0 || dimensions.height === 0) return
+
     const cellWithGap = gridSize + cellGap
-    const cols = Math.ceil(dimensions.width / cellWithGap)
-    const rows = Math.ceil(dimensions.height / cellWithGap)
+    const cols = Math.ceil(dimensions.width / cellWithGap) + 1
+    const rows = Math.ceil(dimensions.height / cellWithGap) + 1
 
     const cells = []
     for (let row = 0; row < rows; row++) {
@@ -72,8 +100,7 @@ export default function ImageLoader({
 
     const img = e.target
 
-    // Wait a bit to show the loading animation
-    setTimeout(() => {
+    const processImage = () => {
       // Set dimensions based on actual rendered image size
       const width = img.offsetWidth
       const height = img.offsetHeight
@@ -115,7 +142,14 @@ export default function ImageLoader({
 
         onLoad()
       }, 50)
-    }, 1500) // Show loading animation for 1.5 seconds
+    }
+
+    // Apply loading delay if specified, otherwise load immediately
+    if (loadingDelay > 0) {
+      setTimeout(processImage, loadingDelay)
+    } else {
+      processImage()
+    }
   }
 
   // Get animation style for each cell
@@ -124,14 +158,20 @@ export default function ImageLoader({
       return {
         animation: `blink ${blinkSpeed}ms infinite`,
         animationDelay: `${cell.blinkDelay}ms`,
-        backgroundColor: '#cbd5e1'
+        backgroundColor: cellColor,
+        width: gridSize,
+        height: gridSize
       }
     }
 
     if (isTransitioning) {
       return {
         backgroundColor: cell.color,
-        transition: `background-color ${transitionDuration}ms ease`
+        transition: `background-color ${transitionDuration}ms ease, width ${transitionDuration}ms ease, height ${transitionDuration}ms ease, left ${transitionDuration}ms ease, top ${transitionDuration}ms ease`,
+        width: gridSize + cellGap,
+        height: gridSize + cellGap,
+        left: cell.x - (cellGap / 2),
+        top: cell.y - (cellGap / 2)
       }
     }
 
@@ -140,7 +180,11 @@ export default function ImageLoader({
         backgroundColor: cell.color,
         opacity: 0,
         transition: `opacity ${fadeOutDuration}ms ease`,
-        transitionDelay: `${cell.fadeDelay}ms`
+        transitionDelay: `${cell.fadeDelay}ms`,
+        width: gridSize + cellGap,
+        height: gridSize + cellGap,
+        left: cell.x - (cellGap / 2),
+        top: cell.y - (cellGap / 2)
       }
     }
 
@@ -156,54 +200,49 @@ export default function ImageLoader({
         }
       `}</style>
 
-      {/* Grid Overlay */}
-      {gridCells.length > 0 && (
-        <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{ width: dimensions.width, height: dimensions.height }}
-        >
-          {gridCells.map(cell => (
-            <div
-              key={cell.id}
-              className={cellShape === 'circle' ? 'rounded-full' : 'rounded'}
-              style={{
-                position: 'absolute',
-                left: cell.x,
-                top: cell.y,
-                width: gridSize,
-                height: gridSize,
-                willChange: 'opacity, background-color',
-                ...getAnimationStyle(cell)
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Actual Image - hidden while loading */}
-      <img
-        ref={imageRef}
-        src={src}
-        alt={alt}
-        crossOrigin="anonymous"
-        className="w-full h-auto object-cover"
+      {/* Container with fixed aspect ratio */}
+      <div
+        className="relative overflow-hidden mx-auto"
         style={{
-          opacity: isFadingOut ? 1 : 0,
-          transition: 'opacity 300ms ease',
-          visibility: isLoading ? 'hidden' : 'visible'
+          width: width || '100%',
+          height: height || 'auto',
+          aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+          backgroundColor: isLoading ? 'transparent' : 'transparent'
         }}
-        onLoad={handleImageLoad}
-      />
+      >
+        {/* Grid Overlay */}
+        {gridCells.length > 0 && (
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            {gridCells.map(cell => (
+              <div
+                key={cell.id}
+                className={cellShape === 'circle' ? 'rounded-full' : 'rounded'}
+                style={{
+                  position: 'absolute',
+                  left: cell.x,
+                  top: cell.y,
+                  willChange: 'opacity, background-color, width, height, left, top',
+                  ...getAnimationStyle(cell)
+                }}
+              />
+            ))}
+          </div>
+        )}
 
-      {/* Placeholder for layout while loading */}
-      {isLoading && (
-        <div
-          className="w-full bg-slate-900"
+        {/* Actual Image */}
+        <img
+          ref={imageRef}
+          src={src}
+          alt={alt}
+          crossOrigin="anonymous"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            paddingBottom: `${(dimensions.height / dimensions.width) * 100}%`
+            opacity: isFadingOut ? 1 : 0,
+            transition: 'opacity 300ms ease'
           }}
+          onLoad={handleImageLoad}
         />
-      )}
+      </div>
     </div>
   )
 }
