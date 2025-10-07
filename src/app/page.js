@@ -6,6 +6,7 @@ import ExperienceCard from '@/components/core/ExperienceCard';
 import ClockPreview from '@/components/previews/ClockPreview';
 import JellyTagsSingle from './ui-interactions/jellytags/JellyTagsSingle';
 import CoinFlip from './svg-animations/coinflip/CoinFlip';
+import ToolsPreview from '@/components/previews/ToolsPreview';
 
 const experienceCards = [
   {
@@ -44,6 +45,12 @@ const explorationCards = [
     component: CoinFlip,
     heading: "Svg Animations",
     href: "/svg-animations",
+    newTab: false,
+  },
+  {
+    component: ToolsPreview,
+    heading: "Tools",
+    href: "/tools",
     newTab: false,
   }
 ];

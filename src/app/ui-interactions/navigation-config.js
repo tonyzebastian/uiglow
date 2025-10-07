@@ -5,7 +5,6 @@ export const navItems = [
     { label: "Image Sphere",    href: "/ui-interactions/img-sphere" },
     { label: "Image Loading", href: "/ui-interactions/img-loading" },
     { label: "Chat Interface", href: "/ui-interactions/chat-interface" },
-    { label: "Drawing Canvas", href: "/ui-interactions/draw-canvas" },
     { label: "Upvote",         href: "/ui-interactions/upvote" },
     { label: "Download Button",href: "/ui-interactions/btn-variations" },
   ];
