@@ -104,55 +104,6 @@ export default function MosaicPhotoEffect({
     };
   }, []);
 
-  // Blend a color with its neighbors
-  const blendWithNeighbors = useCallback((colorGrid, tileX, tileY, totalTilesX, totalTilesY) => {
-    const currentColor = colorGrid[tileY][tileX];
-
-    // Weights for blending
-    const centerWeight = 0.65; // Current tile
-    const directWeight = 0.06; // Direct neighbors (N, S, E, W)
-    const diagonalWeight = 0.025; // Diagonal neighbors (NE, NW, SE, SW)
-
-    let r = currentColor.r * centerWeight;
-    let g = currentColor.g * centerWeight;
-    let b = currentColor.b * centerWeight;
-    let a = currentColor.a * centerWeight;
-
-    // Define neighbor offsets: [dy, dx, weight]
-    const neighbors = [
-      [-1, 0, directWeight],   // North
-      [1, 0, directWeight],    // South
-      [0, -1, directWeight],   // West
-      [0, 1, directWeight],    // East
-      [-1, -1, diagonalWeight], // NW
-      [-1, 1, diagonalWeight],  // NE
-      [1, -1, diagonalWeight],  // SW
-      [1, 1, diagonalWeight]    // SE
-    ];
-
-    // Add neighbor colors with their weights
-    for (const [dy, dx, weight] of neighbors) {
-      const ny = tileY + dy;
-      const nx = tileX + dx;
-
-      // Check if neighbor exists
-      if (ny >= 0 && ny < totalTilesY && nx >= 0 && nx < totalTilesX) {
-        const neighborColor = colorGrid[ny][nx];
-        r += neighborColor.r * weight;
-        g += neighborColor.g * weight;
-        b += neighborColor.b * weight;
-        a += neighborColor.a * weight;
-      }
-    }
-
-    return {
-      r: Math.round(r),
-      g: Math.round(g),
-      b: Math.round(b),
-      a: Math.round(a)
-    };
-  }, []);
-
   // Draw a single tile with border
   const drawTile = useCallback((ctx, x, y, width, height, color) => {
     // Draw main tile
@@ -209,46 +160,25 @@ export default function MosaicPhotoEffect({
       const totalTiles = totalTilesX * totalTilesY;
       let processedTiles = 0;
 
-      // PASS 1: Calculate all tile colors and store in a 2D grid
-      const colorGrid = [];
-      for (let tileY = 0; tileY < totalTilesY; tileY++) {
-        colorGrid[tileY] = [];
-        for (let tileX = 0; tileX < totalTilesX; tileX++) {
-          const x = tileX * tileSize;
-          const y = tileY * tileSize;
+      // Generate mosaic tiles
+      for (let y = 0; y < height; y += tileSize) {
+        for (let x = 0; x < width; x += tileSize) {
+          // Get actual tile dimensions (handle edge cases)
           const actualTileWidth = Math.min(tileSize, width - x);
           const actualTileHeight = Math.min(tileSize, height - y);
 
           // Get pixel data for this tile
           const imageData = sourceCtx.getImageData(x, y, actualTileWidth, actualTileHeight);
 
-          // Calculate and store average color
-          colorGrid[tileY][tileX] = calculateAverageColor(imageData);
+          // Calculate average color
+          const avgColor = calculateAverageColor(imageData);
 
-          // Update progress (50% for first pass)
+          // Draw tile
+          drawTile(mosaicCtx, x, y, actualTileWidth, actualTileHeight, avgColor);
+
+          // Update progress
           processedTiles++;
-          setProgress((processedTiles / totalTiles) * 50);
-        }
-      }
-
-      // PASS 2: Blend with neighbors and draw tiles
-      processedTiles = 0;
-      for (let tileY = 0; tileY < totalTilesY; tileY++) {
-        for (let tileX = 0; tileX < totalTilesX; tileX++) {
-          const x = tileX * tileSize;
-          const y = tileY * tileSize;
-          const actualTileWidth = Math.min(tileSize, width - x);
-          const actualTileHeight = Math.min(tileSize, height - y);
-
-          // Blend color with neighbors
-          const blendedColor = blendWithNeighbors(colorGrid, tileX, tileY, totalTilesX, totalTilesY);
-
-          // Draw tile with blended color
-          drawTile(mosaicCtx, x, y, actualTileWidth, actualTileHeight, blendedColor);
-
-          // Update progress (50-100% for second pass)
-          processedTiles++;
-          setProgress(50 + (processedTiles / totalTiles) * 50);
+          setProgress((processedTiles / totalTiles) * 100);
         }
       }
 
@@ -290,7 +220,7 @@ export default function MosaicPhotoEffect({
     };
 
     img.src = image;
-  }, [image, tileSize, calculateAverageColor, drawTile, blendWithNeighbors]);
+  }, [image, tileSize, calculateAverageColor, drawTile]);
 
   // Handle image upload
   const handleImageUpload = (e) => {
