@@ -20,6 +20,52 @@ export default function MosaicPhotoEffect({
   const fileInputRef = useRef(null);
   const debounceTimerRef = useRef(null);
 
+  // Enhance color saturation based on brightness
+  const enhanceColor = useCallback((color) => {
+    // Calculate luminance (perceived brightness)
+    const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+
+    // Convert to HSL-like approach for saturation boost
+    const max = Math.max(color.r, color.g, color.b);
+    const min = Math.min(color.r, color.g, color.b);
+    const delta = max - min;
+
+    if (delta === 0) return color; // Grayscale, no saturation to enhance
+
+    // For darker colors (luminance < 0.5), make them darker and more saturated
+    // For lighter colors (luminance >= 0.5), make them brighter and more saturated
+    let saturationBoost, brightnessAdjust;
+
+    if (luminance < 0.5) {
+      // Dark colors: increase saturation, decrease brightness
+      saturationBoost = 1.3;
+      brightnessAdjust = 0.85;
+    } else {
+      // Light colors: increase saturation, increase brightness
+      saturationBoost = 1.3;
+      brightnessAdjust = 1.15;
+    }
+
+    // Apply saturation boost by pushing colors away from gray
+    const gray = (color.r + color.g + color.b) / 3;
+    let r = gray + (color.r - gray) * saturationBoost;
+    let g = gray + (color.g - gray) * saturationBoost;
+    let b = gray + (color.b - gray) * saturationBoost;
+
+    // Apply brightness adjustment
+    r = r * brightnessAdjust;
+    g = g * brightnessAdjust;
+    b = b * brightnessAdjust;
+
+    // Clamp values
+    return {
+      r: Math.max(0, Math.min(255, Math.round(r))),
+      g: Math.max(0, Math.min(255, Math.round(g))),
+      b: Math.max(0, Math.min(255, Math.round(b))),
+      a: color.a
+    };
+  }, []);
+
   // Calculate average color from image data
   const calculateAverageColor = useCallback((imageData) => {
     let r = 0, g = 0, b = 0, a = 0;
@@ -33,13 +79,16 @@ export default function MosaicPhotoEffect({
       a += pixels[i + 3];
     }
 
-    return {
+    const avgColor = {
       r: Math.round(r / pixelCount),
       g: Math.round(g / pixelCount),
       b: Math.round(b / pixelCount),
       a: Math.round(a / pixelCount)
     };
-  }, []);
+
+    // Enhance the color for more saturated look
+    return enhanceColor(avgColor);
+  }, [enhanceColor]);
 
   // Darken color for borders
   const darkenColor = useCallback((color, factor) => {
