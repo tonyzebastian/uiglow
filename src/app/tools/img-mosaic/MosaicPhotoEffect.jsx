@@ -72,6 +72,7 @@ export default function MosaicPhotoEffect({
 
     const sourceCanvas = sourceCanvasRef.current;
     const mosaicCanvas = mosaicCanvasRef.current;
+    const grainImage = grainImageRef.current;
     const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
     const mosaicCtx = mosaicCanvas.getContext('2d');
 
@@ -118,6 +119,40 @@ export default function MosaicPhotoEffect({
         }
       }
 
+      // Apply texture directly to canvas using composite operation
+      if (grainImage && grainImage.complete) {
+        // Apply grunge texture with reduced opacity
+        mosaicCtx.globalCompositeOperation = 'color-dodge';
+        mosaicCtx.globalAlpha = 0.4;
+        mosaicCtx.drawImage(grainImage, 0, 0, width, height);
+
+        // Add grain noise on top using a temporary canvas
+        const grainCanvas = document.createElement('canvas');
+        grainCanvas.width = width;
+        grainCanvas.height = height;
+        const grainCtx = grainCanvas.getContext('2d');
+
+        // Generate procedural grain on temporary canvas
+        const grainData = grainCtx.createImageData(width, height);
+        for (let i = 0; i < grainData.data.length; i += 4) {
+          const noise = Math.random() * 255;
+          grainData.data[i] = noise;     // R
+          grainData.data[i + 1] = noise; // G
+          grainData.data[i + 2] = noise; // B
+          grainData.data[i + 3] = 255;   // A
+        }
+        grainCtx.putImageData(grainData, 0, 0);
+
+        // Draw grain with overlay blend mode
+        mosaicCtx.globalCompositeOperation = 'overlay';
+        mosaicCtx.globalAlpha = 0.15;
+        mosaicCtx.drawImage(grainCanvas, 0, 0);
+
+        // Reset composite operation and alpha
+        mosaicCtx.globalCompositeOperation = 'source-over';
+        mosaicCtx.globalAlpha = 1.0;
+      }
+
       setIsProcessing(false);
     };
 
@@ -139,29 +174,11 @@ export default function MosaicPhotoEffect({
   // Export mosaic as PNG
   const exportMosaic = () => {
     const mosaicCanvas = mosaicCanvasRef.current;
-    const grainImage = grainImageRef.current;
 
     if (!mosaicCanvas) return;
 
-    // Create export canvas
-    const exportCanvas = document.createElement('canvas');
-    const exportCtx = exportCanvas.getContext('2d');
-
-    exportCanvas.width = mosaicCanvas.width;
-    exportCanvas.height = mosaicCanvas.height;
-
-    // Draw mosaic
-    exportCtx.drawImage(mosaicCanvas, 0, 0);
-
-    // Draw grunge texture if available
-    if (grainImage && grainImage.complete) {
-      exportCtx.globalCompositeOperation = 'color-dodge';
-      exportCtx.globalAlpha = 1.0;
-      exportCtx.drawImage(grainImage, 0, 0, exportCanvas.width, exportCanvas.height);
-    }
-
-    // Export
-    const dataURL = exportCanvas.toDataURL('image/png');
+    // The canvas already has the texture and grain applied, so just export it directly
+    const dataURL = mosaicCanvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = 'mosaic-photo.png';
     link.href = dataURL;
@@ -283,21 +300,10 @@ export default function MosaicPhotoEffect({
               </div>
             )}
 
-            <div className="relative inline-block">
-              <canvas
-                ref={mosaicCanvasRef}
-                className="max-w-full h-auto block"
-              />
-
-              {/* Grunge texture overlay */}
-              <img
-                src={grainTextureUrl}
-                alt=""
-                className="absolute inset-0 w-full h-full pointer-events-none object-cover"
-                style={{ mixBlendMode: 'color-dodge' }}
-                crossOrigin="anonymous"
-              />
-            </div>
+            <canvas
+              ref={mosaicCanvasRef}
+              className="max-w-full h-auto block"
+            />
           </div>
 
           {/* Image Info */}
