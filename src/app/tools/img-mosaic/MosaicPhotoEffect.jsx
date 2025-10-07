@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Download, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 
 export default function MosaicPhotoEffect({
   grainTextureUrl = '/tools/texture-pattern.jpg',
@@ -9,9 +11,10 @@ export default function MosaicPhotoEffect({
 }) {
   // State
   const [image, setImage] = useState(defaultImage);
-  const [tileSize, setTileSize] = useState(20);
+  const [tileSize, setTileSize] = useState(15);
   const [isProcessing, setIsProcessing] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [progress, setProgress] = useState(0);
 
   // Refs
   const sourceCanvasRef = useRef(null);
@@ -57,11 +60,12 @@ export default function MosaicPhotoEffect({
     g = g * brightnessAdjust;
     b = b * brightnessAdjust;
 
-    // Clamp values
+    // Clamp values and ensure blacks are not pure black (minimum value of 20)
+    const minBlackLevel = 20;
     return {
-      r: Math.max(0, Math.min(255, Math.round(r))),
-      g: Math.max(0, Math.min(255, Math.round(g))),
-      b: Math.max(0, Math.min(255, Math.round(b))),
+      r: Math.max(minBlackLevel, Math.min(255, Math.round(r))),
+      g: Math.max(minBlackLevel, Math.min(255, Math.round(g))),
+      b: Math.max(minBlackLevel, Math.min(255, Math.round(b))),
       a: color.a
     };
   }, []);
@@ -150,6 +154,12 @@ export default function MosaicPhotoEffect({
       // Draw scaled image to source canvas
       sourceCtx.drawImage(img, 0, 0, width, height);
 
+      // Calculate total tiles for progress tracking
+      const totalTilesX = Math.ceil(width / tileSize);
+      const totalTilesY = Math.ceil(height / tileSize);
+      const totalTiles = totalTilesX * totalTilesY;
+      let processedTiles = 0;
+
       // Generate mosaic tiles
       for (let y = 0; y < height; y += tileSize) {
         for (let x = 0; x < width; x += tileSize) {
@@ -165,6 +175,10 @@ export default function MosaicPhotoEffect({
 
           // Draw tile
           drawTile(mosaicCtx, x, y, actualTileWidth, actualTileHeight, avgColor);
+
+          // Update progress
+          processedTiles++;
+          setProgress((processedTiles / totalTiles) * 100);
         }
       }
 
@@ -291,76 +305,79 @@ export default function MosaicPhotoEffect({
             <p className="text-sm text-slate-500 dark:text-slate-400">No image uploaded</p>
           </div>
 
-          <button
+          <Button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+            size="lg"
           >
             <Upload className="w-4 h-4" />
             Upload Image
-          </button>
+          </Button>
         </div>
       ) : (
-        // Mosaic Display & Controls
-        <div className="flex flex-col items-center gap-6 w-full max-w-6xl">
-          {/* Controls */}
-          <div className="w-full flex items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-4 flex-1">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                Tile Size:
-              </label>
-              <input
-                type="range"
-                min="5"
-                max="50"
-                value={tileSize}
-                onChange={(e) => setTileSize(parseInt(e.target.value))}
-                className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
-              />
-              <span className="text-sm font-mono text-slate-600 dark:text-slate-400 w-12 text-right">
-                {tileSize}px
-              </span>
-            </div>
+        // Mosaic Display & Controls (merged)
+        <div className="w-full max-w-6xl">
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+            {/* Controls at top */}
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    Tile Size:
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={tileSize}
+                    onChange={(e) => setTileSize(parseInt(e.target.value))}
+                    className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <span className="text-sm font-mono text-slate-600 dark:text-slate-400 w-12 text-right">
+                    {tileSize}px
+                  </span>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
-              >
-                <Upload className="w-4 h-4" />
-                New Image
-              </button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    <Upload className="w-4 h-4" />
+                    New Image
+                  </Button>
 
-              <button
-                onClick={exportMosaic}
-                disabled={isProcessing}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
-              >
-                <Download className="w-4 h-4" />
-                Export PNG
-              </button>
-            </div>
-          </div>
-
-          {/* Mosaic Preview */}
-          <div className="relative bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4 overflow-auto max-h-[70vh]">
-            {isProcessing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg">
-                <div className="text-sm text-slate-600 dark:text-slate-400">Processing...</div>
+                  <Button
+                    onClick={exportMosaic}
+                    disabled={isProcessing}
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export PNG
+                  </Button>
+                </div>
               </div>
-            )}
 
-            <canvas
-              ref={mosaicCanvasRef}
-              className="max-w-full h-auto block"
-            />
-          </div>
-
-          {/* Image Info */}
-          {imageDimensions.width > 0 && (
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-              {imageDimensions.width} × {imageDimensions.height} pixels
+              {/* Progress bar */}
+              {isProcessing && (
+                <Slider value={[progress]} max={100} className="h-2" disabled />
+              )}
             </div>
-          )}
+
+            {/* Mosaic Preview */}
+            <div className="relative flex items-center justify-center">
+              {isProcessing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Processing... {Math.round(progress)}%</div>
+                </div>
+              )}
+
+              <canvas
+                ref={mosaicCanvasRef}
+                className="max-w-full h-auto block"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
