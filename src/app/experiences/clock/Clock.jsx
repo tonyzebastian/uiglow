@@ -4,20 +4,34 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from './Clock.module.css';
 
-export default function Clock({ initialTime = new Date(), size = 270, timeZoneOffset = 0 }) {
-  const [time, setTime] = useState(initialTime);
+export default function Clock({ size = 270, timeZoneOffset = 0 }) {
+  const [time, setTime] = useState(() => {
+    // Initialize with current time only on client
+    if (typeof window !== 'undefined') {
+      const now = new Date();
+      const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return new Date(utcTime + (timeZoneOffset * 3600000));
+    }
+    return new Date(0); // Fallback for SSR
+  });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-      const timer = setInterval(() => {
-          const now = new Date();
-          // Get UTC time in milliseconds
-          const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-          // Add the offset hours
-          const offsetTime = new Date(utcTime + (timeZoneOffset * 3600000));
-          setTime(offsetTime);
-      }, 1000);
+    setMounted(true);
 
-      return () => clearInterval(timer);
+    // Immediately set correct time on mount
+    const now = new Date();
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    setTime(new Date(utcTime + (timeZoneOffset * 3600000)));
+
+    const timer = setInterval(() => {
+      const now = new Date();
+      const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const offsetTime = new Date(utcTime + (timeZoneOffset * 3600000));
+      setTime(offsetTime);
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, [timeZoneOffset]);
   
     const secondsDegrees = ((time.getMinutes() * 60 + time.getSeconds()) / 60) * 360;
@@ -31,8 +45,17 @@ export default function Clock({ initialTime = new Date(), size = 270, timeZoneOf
     const minuteHandWidth = size * 0.0926;  // ~25px when size is 270
     const minuteHandHeight = size * 0.3704; // ~100px when size is 270
 
+    // Don't render until mounted to avoid hydration mismatch
+    if (!mounted) {
+      return (
+        <div className="relative" style={{ width: size, height: size }}>
+          <div className="w-full h-full" />
+        </div>
+      );
+    }
+
     return (
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="relative" style={{ width: size, height: size }} suppressHydrationWarning>
         {/* Clock face (seconds svg as background) */}
         <Image
           src="/clock/seconds.svg"
@@ -41,9 +64,10 @@ export default function Clock({ initialTime = new Date(), size = 270, timeZoneOf
           height={size}
           className="absolute transition-transform duration-[250ms]"
           style={{ transform: `rotate(${secondsDegrees}deg)` }}
+          suppressHydrationWarning
         />
-        
-        <div 
+
+        <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#3B4B41] rounded-full z-10"
           style={{ width: centerDotSize, height: centerDotSize }}
         />
@@ -55,10 +79,11 @@ export default function Clock({ initialTime = new Date(), size = 270, timeZoneOf
           width={hourHandWidth}
           height={hourHandHeight}
           className={`absolute left-1/2 bottom-1/2 ${styles.hourContainer}`}
-          style={{ 
+          style={{
             transformOrigin: 'bottom center',
             transform: `translateX(-50%) rotate(${hoursDegrees}deg)`
           }}
+          suppressHydrationWarning
         />
 
         {/* Minute hand */}
@@ -68,10 +93,11 @@ export default function Clock({ initialTime = new Date(), size = 270, timeZoneOf
           width={minuteHandWidth}
           height={minuteHandHeight}
           className={`absolute left-1/2 bottom-1/2 ${styles.minContainer}`}
-          style={{ 
+          style={{
             transformOrigin: 'bottom center',
             transform: `translateX(-50%) rotate(${minutesDegrees}deg)`
           }}
+          suppressHydrationWarning
         />
       </div>
     );

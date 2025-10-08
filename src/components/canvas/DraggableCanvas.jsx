@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
 import DraggableItem from './DraggableItem';
 
-const BOUNDARY_PADDING = 300; // Max distance user can scroll away from items
+const CANVAS_SIZE = 10000; // Large canvas boundary (10000px in each direction)
 const BASE_WIDTH = 1440; // Base design width
 const MIN_SCALE = 0.6; // Minimum scale (60%)
 const MAX_SCALE = 1.2; // Maximum scale (120%)
@@ -16,34 +16,29 @@ export default function DraggableCanvas({ items: initialItems }) {
   const [canvasScale, setCanvasScale] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, canvasX: 0, canvasY: 0 });
+  const canvasRef = useRef(null);
 
-  // Set mounted state and calculate initial scale
+  // Set mounted state, calculate initial scale, and position viewport
   useEffect(() => {
-    const viewportWidth = window.innerWidth;
-    const calculatedScale = viewportWidth / BASE_WIDTH;
-    const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
-    setCanvasScale(clampedScale);
-    setIsMounted(true);
+    const updateScaleAndPosition = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const calculatedScale = viewportWidth / BASE_WIDTH;
+      const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
+      setCanvasScale(clampedScale);
+
+      // Position viewport with top-left anchor approach
+      // Center horizontally, but keep consistent vertical offset from top
+      const centerX = (viewportWidth / 2) - (500 * clampedScale);
+      const topMargin = 100; // Fixed margin from top
+      const offsetY = topMargin;
+      setCanvasOffset({ x: centerX, y: offsetY });
+
+      setIsMounted(true);
+    };
+
+    updateScaleAndPosition();
   }, []);
-
-  // Calculate canvas boundaries based on item positions (accounting for scale)
-  const calculateBoundaries = useCallback(() => {
-    if (items.length === 0) return { minX: -BOUNDARY_PADDING, maxX: BOUNDARY_PADDING, minY: -BOUNDARY_PADDING, maxY: BOUNDARY_PADDING };
-
-    const positions = items.map(item => ({
-      left: item.position.x * canvasScale,
-      right: (item.position.x + item.size.width) * canvasScale,
-      top: item.position.y * canvasScale,
-      bottom: (item.position.y + item.size.height) * canvasScale,
-    }));
-
-    const minX = Math.min(...positions.map(p => p.left)) - BOUNDARY_PADDING;
-    const maxX = Math.max(...positions.map(p => p.right)) + BOUNDARY_PADDING;
-    const minY = Math.min(...positions.map(p => p.top)) - BOUNDARY_PADDING;
-    const maxY = Math.max(...positions.map(p => p.bottom)) + BOUNDARY_PADDING;
-
-    return { minX, maxX, minY, maxY };
-  }, [items, canvasScale]);
 
   // Handle canvas drag start
   const handleCanvasMouseDown = (e) => {
@@ -69,22 +64,12 @@ export default function DraggableCanvas({ items: initialItems }) {
     const newX = dragStartRef.current.canvasX + deltaX;
     const newY = dragStartRef.current.canvasY + deltaY;
 
-    // Apply boundaries
-    const boundaries = calculateBoundaries();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    const clampedX = Math.max(
-      -boundaries.maxX + viewportWidth,
-      Math.min(newX, -boundaries.minX)
-    );
-    const clampedY = Math.max(
-      -boundaries.maxY + viewportHeight,
-      Math.min(newY, -boundaries.minY)
-    );
+    // Apply simple boundaries
+    const clampedX = Math.max(-CANVAS_SIZE, Math.min(newX, CANVAS_SIZE));
+    const clampedY = Math.max(-CANVAS_SIZE, Math.min(newY, CANVAS_SIZE));
 
     setCanvasOffset({ x: clampedX, y: clampedY });
-  }, [isDraggingCanvas, calculateBoundaries]);
+  }, [isDraggingCanvas]);
 
   // Handle canvas drag end
   const handleCanvasMouseUp = useCallback(() => {
@@ -93,41 +78,51 @@ export default function DraggableCanvas({ items: initialItems }) {
 
   // Handle mouse wheel scroll
   const handleWheel = useCallback((e) => {
-    e.preventDefault();
-
     const newX = canvasOffset.x - e.deltaX;
     const newY = canvasOffset.y - e.deltaY;
 
-    // Apply boundaries
-    const boundaries = calculateBoundaries();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    const clampedX = Math.max(
-      -boundaries.maxX + viewportWidth,
-      Math.min(newX, -boundaries.minX)
-    );
-    const clampedY = Math.max(
-      -boundaries.maxY + viewportHeight,
-      Math.min(newY, -boundaries.minY)
-    );
+    // Apply simple boundaries
+    const clampedX = Math.max(-CANVAS_SIZE, Math.min(newX, CANVAS_SIZE));
+    const clampedY = Math.max(-CANVAS_SIZE, Math.min(newY, CANVAS_SIZE));
 
     setCanvasOffset({ x: clampedX, y: clampedY });
-  }, [canvasOffset, calculateBoundaries]);
+  }, [canvasOffset]);
 
-  // Calculate and update canvas scale based on viewport
+  // Update canvas scale and reposition on resize
   useEffect(() => {
     const updateScale = () => {
       const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       const calculatedScale = viewportWidth / BASE_WIDTH;
       const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
       setCanvasScale(clampedScale);
+
+      // Reposition viewport when scale changes (top-left anchor)
+      if (isMounted) {
+        const centerX = (viewportWidth / 2) - (500 * clampedScale);
+        const topMargin = 100; // Fixed margin from top
+        const offsetY = topMargin;
+        setCanvasOffset({ x: centerX, y: offsetY });
+      }
     };
 
-    updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, []);
+  }, [isMounted]);
+
+  // Add wheel event listener with passive: false
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const wheelHandler = (e) => {
+      e.preventDefault();
+      handleWheel(e);
+    };
+
+    canvas.addEventListener('wheel', wheelHandler, { passive: false });
+    return () => canvas.removeEventListener('wheel', wheelHandler);
+  }, [handleWheel]);
 
   // Add global mouse event listeners
   useEffect(() => {
@@ -152,11 +147,11 @@ export default function DraggableCanvas({ items: initialItems }) {
 
   return (
     <div
+      ref={canvasRef}
       className={`relative w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 canvas-background ${
         isDraggingCanvas ? 'cursor-grabbing' : 'cursor-default'
       }`}
       onMouseDown={handleCanvasMouseDown}
-      onWheel={handleWheel}
     >
       <div
         className="absolute inset-0"

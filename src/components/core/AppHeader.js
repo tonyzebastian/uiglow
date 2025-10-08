@@ -29,16 +29,16 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
     };
 
     return (
-        <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 ${
+        <header className={`z-50 ${
             variant === 'primary'
-                ? 'w-auto'
-                : 'top-0 left-0 right-0 translate-x-0 h-16 border-b border-slate-200 dark:border-slate-900'
+                ? 'fixed top-4 left-1/2 -translate-x-1/2 w-auto'
+                : 'w-full border-b border-slate-200 dark:border-slate-900'
         }`}>
             <div
-                className={`h-full px-4 flex items-center justify-between ${
+                className={`h-full flex items-center justify-between ${
                     variant === 'primary'
                         ? 'bg-white dark:bg-slate-900 rounded-full shadow-lg border border-slate-200 dark:border-slate-800 py-2 px-8 gap-12 min-w-[600px]'
-                        : 'bg-white dark:bg-slate-950 w-full'
+                        : 'bg-white dark:bg-slate-950 w-full px-6 py-4'
                 }`}
             >
                 <div className="flex items-center gap-4">

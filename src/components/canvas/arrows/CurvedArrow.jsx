@@ -40,7 +40,7 @@ export default function CurvedArrow({ direction = 'down-left', width = 100, heig
   };
 
   return (
-    <div className="text-slate-800 dark:text-slate-300" style={{ width, height }}>
+    <div className="text-slate-300 dark:text-slate-700" style={{ width, height }}>
       {arrows[direction] || arrows['down-left']}
     </div>
   );

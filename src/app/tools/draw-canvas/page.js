@@ -1,4 +1,6 @@
 import DrawingCanvas from './DrawingCanvas';
+import AppHeader from "@/components/core/AppHeader";
+import UIGlowLogoMini from "@/components/LogoMini";
 
 export default function DrawingPage() {
   // Canvas Configuration
@@ -35,13 +37,16 @@ export default function DrawingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <DrawingCanvas
-        canvasConfig={canvasConfig}
-        imageConfig={imageConfig}
-        drawingConfig={drawingConfig}
-        buttonConfig={buttonConfig}
-      />
+    <div className="flex flex-col h-screen">
+      <AppHeader variant="secondary" title="Drawing Canvas" secondaryLogo={<UIGlowLogoMini />}/>
+      <div className="flex-1 flex items-center justify-center p-8">
+        <DrawingCanvas
+          canvasConfig={canvasConfig}
+          imageConfig={imageConfig}
+          drawingConfig={drawingConfig}
+          buttonConfig={buttonConfig}
+        />
+      </div>
     </div>
   );
 }

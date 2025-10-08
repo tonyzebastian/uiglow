@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { navItems } from "./navigation-config";
-
 export default function ToolsPage() {
-  // Redirect to the first available navigation item
-  redirect(navItems[0].href);
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-slate-500">Select a tool to get started</p>
+    </div>
+  );
 }

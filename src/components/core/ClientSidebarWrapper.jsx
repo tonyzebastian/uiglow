@@ -19,7 +19,7 @@ const SidebarNav = dynamic(() => import("@/components/core/SidebarNav"), {
 export default function ClientSidebarWrapper({ children, navItems }) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1">
         <SidebarNav navItems={navItems} />
         {children}
       </div>

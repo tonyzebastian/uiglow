@@ -9,6 +9,7 @@ import CurvedArrow from './arrows/CurvedArrow';
 
 // Component registry
 const componentMap = {
+  Clock: dynamic(() => import('@/app/experiences/clock/Clock')),
   ClockPreview: dynamic(() => import('@/components/previews/ClockPreview')),
   JellyTagsSingle: dynamic(() => import('@/app/ui-interactions/jellytags/JellyTagsSingle')),
   CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
@@ -37,36 +38,14 @@ function CardContent({ contentType, content, component, componentProps, title })
   if (contentType === 'video') {
     return (
       <div className="relative w-full h-full rounded-lg overflow-hidden">
-        {!isPlaying ? (
-          <>
-            <video
-              src={content}
-              className="w-full h-full object-cover rounded-lg"
-              muted
-              loop
-              playsInline
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsPlaying(true);
-                }}
-                className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
-              >
-                <Play className="w-6 h-6 text-gray-900 ml-1" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <video
-            src={content}
-            className="w-full h-full object-cover rounded-lg"
-            autoPlay
-            controls
-            playsInline
-          />
-        )}
+        <video
+          src={content}
+          className="w-full h-full object-cover rounded-lg"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
       </div>
     );
   }
@@ -86,7 +65,7 @@ function CardContent({ contentType, content, component, componentProps, title })
   if (contentType === 'group-title') {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <h2 className="text-2xl font-medium text-slate-800 dark:text-slate-100 font-sans">
+        <h2 className="text-xl font-medium text-slate-800 dark:text-slate-100 font-sans">
           {content}
         </h2>
       </div>
@@ -115,7 +94,7 @@ function CardContent({ contentType, content, component, componentProps, title })
     }
 
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center" suppressHydrationWarning>
         <Component {...(componentProps || {})} />
       </div>
     );
