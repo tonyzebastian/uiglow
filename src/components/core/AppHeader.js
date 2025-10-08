@@ -29,16 +29,20 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900 z-50">
-            <div 
-                className={`mx-auto h-full px-4 flex items-center justify-between ${
-                    variant === 'primary' 
-                        ? 'border-x border-slate-200 dark:border-slate-900 md:w-[700px] lg:w-[800px] xl:w-[900px]'
-                        : 'w-full'
+        <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 ${
+            variant === 'primary'
+                ? 'w-auto'
+                : 'top-0 left-0 right-0 translate-x-0 h-16 border-b border-slate-200 dark:border-slate-900'
+        }`}>
+            <div
+                className={`h-full px-4 flex items-center justify-between ${
+                    variant === 'primary'
+                        ? 'bg-white dark:bg-slate-900 rounded-full shadow-lg border border-slate-200 dark:border-slate-800 py-2 px-8 gap-12 min-w-[600px]'
+                        : 'bg-white dark:bg-slate-950 w-full'
                 }`}
             >
                 <div className="flex items-center gap-4">
-                    <a 
+                    <a
                         href="/"
                         className="flex items-center gap-2"
                     >
@@ -60,23 +64,19 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
                     </a>
                 </div>
 
-                {/* ... rest of the code remains the same ... */}
                 <TooltipProvider>
                     <div className="flex items-center gap-4">
                         <a
                             href="https://www.tonyzeb.design/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 pl-2 pr-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-colors border "
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                         >
-                            <img 
-                                src="/profile.jpg" 
+                            <img
+                                src="/profile.jpg"
                                 alt="Tony Sebastian"
                                 className="w-6 h-6 rounded-full object-cover"
                             />
-                            <span className="text-sm text-slate-700 dark:text-slate-300">
-                                Tony Sebastian
-                            </span>
                         </a>
 
                         <Tooltip>
@@ -85,27 +85,27 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
                                     href="https://github.com/tonyzebastian/uiglow"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                 >
                                     <GitHub size={16} className="text-slate-700 dark:text-slate-300" />
                                 </a>
                             </TooltipTrigger>
-                            <TooltipContent side="top">Github Repo</TooltipContent>
+                            <TooltipContent side="bottom">Github Repo</TooltipContent>
                         </Tooltip>
 
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button 
+                                <button
                                     onClick={toggleTheme}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                 >
-                                    {isDark 
-                                        ? <Sun size={16} className="text-slate-700 dark:text-slate-300" /> 
+                                    {isDark
+                                        ? <Sun size={16} className="text-slate-700 dark:text-slate-300" />
                                         : <Moon size={16} className="text-slate-700 dark:text-slate-300" />
                                     }
                                 </button>
                             </TooltipTrigger>
-                            <TooltipContent side="top">Switch Theme</TooltipContent>
+                            <TooltipContent side="bottom">Switch Theme</TooltipContent>
                         </Tooltip>
                     </div>
                 </TooltipProvider>
