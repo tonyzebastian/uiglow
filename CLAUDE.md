@@ -44,7 +44,7 @@ UiGlow is a modern Next.js-based UI component showcase and experimentation platf
 src/
 ├── app/                          # Next.js App Router
 │   ├── layout.js                 # Root layout with font configuration
-│   ├── page.js                   # Home page
+│   ├── page.js                   # Home page with draggable canvas
 │   ├── globals.css               # Global styles and CSS variables
 │   ├── experiences/              # Interactive experiences
 │   │   ├── clock/                # World clock experience
@@ -54,19 +54,30 @@ src/
 │   │   ├── coinflip/             # Coin flip animation
 │   │   ├── comethero/            # Comet hero animation
 │   │   └── unlock/               # Lock/unlock animation
-│   └── ui-interactions/          # UI component demonstrations
-│       ├── jellytags/            # Interactive jelly tags
-│       ├── upvote/               # Upvote component
-│       ├── music-player/         # Music player UI
-│       ├── toolbar/              # Toolbar component
-│       ├── btn-variations/       # Button variations
-│       └── img-tile/             # Image tile component
+│   ├── ui-interactions/          # UI component demonstrations
+│   │   ├── img-stack/            # Image stack interaction
+│   │   ├── img-tiles/            # Image tiles interaction
+│   │   ├── img-light/            # Image spotlight interaction
+│   │   ├── img-sphere/           # Image sphere interaction
+│   │   ├── img-loading/          # Image loading interaction
+│   │   └── chat-interface/       # Chat interface component
+│   └── tools/                    # Standalone tools (no shared layout/nav)
+│       ├── layout.js             # Passthrough layout
+│       ├── page.js               # Tools landing page
+│       ├── draw-canvas/          # Drawing canvas tool
+│       └── img-mosaic/           # Image mosaic tool
 ├── components/                   # Reusable components
 │   ├── core/                     # Core application components
-│   │   ├── AppHeader.js          # Application header
+│   │   ├── AppHeader.js          # Application header with primary/secondary variants
 │   │   ├── ExperienceCard.jsx    # Card component for experiences
 │   │   ├── PageLayout.jsx        # Page layout wrapper
 │   │   └── SidebarNav.jsx        # Navigation sidebar
+│   ├── canvas/                   # Canvas system components
+│   │   ├── DraggableCanvas.jsx   # Main canvas with pan/zoom
+│   │   ├── DraggableItem.jsx     # Individual draggable items
+│   │   ├── CardContent.jsx       # Content renderer (image/video/component)
+│   │   └── arrows/               # Hand-drawn arrow components
+│   │       └── CurvedArrow.jsx   # SVG arrows for visual grouping
 │   ├── ui/                       # Shadcn/ui components
 │   ├── backgrounds/              # Background components
 │   │   └── GradientBlob.jsx      # Animated gradient blob
@@ -74,6 +85,8 @@ src/
 │   │   └── BreathingText.jsx     # Breathing text animation
 │   └── previews/                 # Preview components
 │       └── ClockPreview.jsx      # Clock preview component
+├── data/                         # Data and configuration
+│   └── canvasData.js             # Canvas items configuration
 ├── fancy/                        # Experimental components
 │   └── components/
 │       └── text/                 # Text-related components
@@ -95,40 +108,64 @@ src/
 - **Semantic Colors**: Following Shadcn/ui conventions
 
 ### Layout Patterns
-- **Three-column layout**: Left sidebar + main content + right sidebar
+- **Draggable Canvas**: Free-form infinite canvas with pan and drag
+- **Responsive Scaling**: Canvas scales between 60%-120% based on viewport (1440px base)
+- **Visual Grouping**: Hand-drawn arrows and spatial organization
+- **Three-column layout**: Left sidebar + main content + right sidebar (for sub-pages)
 - **Grid systems**: 2-column grids for cards
 - **Responsive design**: Mobile-first approach
 - **Fixed width content**: 700-900px main content area
 
 ## Key Features
 
-### 1. Experiences Section
+### 1. Home Page - Draggable Canvas System
+Interactive free-form canvas showcasing all projects:
+- **Pan and Drag**: Click-drag canvas to navigate, mouse wheel to scroll
+- **Draggable Items**: Each project card can be repositioned
+- **Visual Grouping**: 4 organized groups with hand-drawn arrows
+  - Experiments (top left): Fish, Clock, Cars
+  - Tools (top right): Mosaic, Draw Canvas
+  - Interactions (bottom left): 6 image interaction demos
+  - SVG Animations (bottom right): Coin flip, Unlock, Comet
+- **Responsive Canvas**: Scales from 60%-120% based on viewport width
+- **Hover Effects**: Configurable tilt rotation and title overlays
+- **Mixed Content**: Supports images, videos (autoplay), and live components
+- **Custom Styling**: Per-item backgrounds, padding, shadows, and rotation
+
+### 2. Experiences Section
 Interactive demos and experiments:
-- Fish school simulation
-- World clock visualization
-- Car configuration interface
-- Gradient experiments
+- **Fish School**: Animated school of fish simulation
+- **World Clock**: Live clock with timezone support
+- **Car Configuration**: Interactive 3D car customizer
 
-### 2. UI Interactions Section
-Component demonstrations:
-- Interactive jelly tags
-- Upvote animations
-- Music player interface
-- Toolbar components
-- Button variations
-- Image tile interactions
+### 3. UI Interactions Section
+Image manipulation and interaction demos:
+- **Image Stack**: Layered image stacking interaction
+- **Image Tiles**: Tile-based image arrangements
+- **Image Light**: Spotlight effect on images
+- **Image Sphere**: Spherical image projection
+- **Image Loading**: Creative loading animations
+- **Chat Interface**: Modern chat UI component
 
-### 3. SVG Animations Section
+### 4. SVG Animations Section
 Vector-based animations:
-- Coin flip mechanics
-- Comet hero animations
-- Lock/unlock transitions
+- **Coin Flip**: Animated coin flip mechanics
+- **Comet Hero**: Comet hero section animation
+- **Unlock**: Lock/unlock transition effects
 
-### 4. Component Architecture
+### 5. Tools Section
+Standalone utility tools accessed directly via links:
+- **Drawing Canvas**: Interactive canvas for drawing and image manipulation
+- **Image Mosaic**: Create photo mosaic effects
+- **No Navigation**: Each tool has its own header with specific tool name
+- **Direct Access**: Tools are accessed via direct links, not through sidebar navigation
+
+### 6. Component Architecture
 - **Reusable components**: Modular design
 - **Props-based configuration**: Flexible component API
-- **Mixed rendering**: Image and component previews
-- **Navigation configs**: Centralized route definitions
+- **Mixed rendering**: Image, video, and component previews
+- **Canvas data system**: Centralized configuration for all canvas items
+- **Dynamic component loading**: Next.js dynamic imports for performance
 
 ## Development Guidelines
 
@@ -193,17 +230,58 @@ The codebase follows these naming standards:
 
 ## Notable Patterns
 
-### 1. Experience Cards System
-Dynamic card rendering supporting both image and component previews with consistent props API.
+### 1. AppHeader Component
+Flexible header component with two variants:
+- **Primary Variant**: Rounded pill header for home page
+  - Fixed positioning at top center
+  - Minimal design with logo, avatar, GitHub link, theme toggle
+  - White/dark background with shadow and border
+- **Secondary Variant**: Full-width header for sub-pages
+  - Full-width with bottom border
+  - Logo + breadcrumb-style title (e.g., "/ Drawing Canvas")
+  - Same controls as primary variant
+  - Used in tools section with tool-specific names
 
-### 2. Navigation Configuration
-Centralized navigation definitions for each section, enabling easy route management.
+### 2. Draggable Canvas System
+Free-form infinite canvas with configurable items:
+- **Canvas Configuration** (`src/data/canvasData.js`): Single source of truth for all canvas items
+- **Item Properties**:
+  - `contentType`: 'image', 'video', 'component', 'text', 'group-title', 'arrow'
+  - `position`: { x, y } coordinates on canvas
+  - `size`: { width, height } in pixels
+  - `rotation`: Base rotation in degrees
+  - `hoverRotation`: Additional rotation on hover
+  - `clickable`: Enable click-to-navigate
+  - `link`: Navigation URL
+  - `openInNewTab`: Open in new tab flag
+  - `shadow`: Drop shadow effect
+  - `background`: Show background
+  - `backgroundColor`: Custom background color (hex)
+  - `padding`: Internal padding in pixels
+- **Interactions**: Pan canvas, drag items, mouse wheel scroll, hover effects
+- **Boundaries**: Simple 10000px boundary for performance
+
+### 2. Content Rendering System
+Unified content renderer supporting multiple types:
+- **Images**: Next.js Image component with lazy loading
+- **Videos**: Autoplay, muted, looping, no controls
+- **Components**: Dynamic imports with `suppressHydrationWarning` for time-based components
+- **Text**: Centered text with pre-line whitespace
+- **Group Titles**: Section headers
+- **Arrows**: Hand-drawn SVG arrows for visual flow
 
 ### 3. Theme System
-Comprehensive CSS variable system supporting light/dark modes with custom color schemes.
+Comprehensive CSS variable system supporting light/dark modes:
+- **Arrow Colors**: Light grey (slate-300) in light mode, darker grey (slate-700) in dark mode
+- **Background Colors**: White/slate-800 with custom color override support
+- **Shadow System**: Configurable drop shadows for depth
 
 ### 4. Animation Integration
-Seamless integration of Motion library with custom CSS animations for rich interactions.
+Seamless integration of Motion library:
+- **Hover States**: Scale and rotation transforms
+- **Drag States**: Scale and z-index changes
+- **Title Overlays**: Smooth gradient fade-in with text
+- **Spring Physics**: Natural feeling animations with configurable stiffness and damping
 
 ## Getting Started for New Contributors
 
@@ -223,4 +301,28 @@ When working with this codebase:
 - **Styling**: Tailwind with CSS variables
 - **Icons**: Primarily Lucide React
 - **Structure**: App Router with organized feature directories
-- **Patterns**: Experience cards, navigation configs, component previews
+- **Patterns**: Draggable canvas, experience cards, navigation configs, component previews
+
+### Canvas System Details
+- **Main Canvas**: `src/components/canvas/DraggableCanvas.jsx` - Handles pan, zoom, boundaries, responsive scaling
+- **Canvas Items**: `src/components/canvas/DraggableItem.jsx` - Individual draggable items with hover effects
+- **Content Renderer**: `src/components/canvas/CardContent.jsx` - Renders different content types
+- **Data Configuration**: `src/data/canvasData.js` - All canvas items with positions and properties
+- **Canvas Size**: 10000px boundary, centers viewport on items at 500x400
+- **Responsive Scaling**: 60%-120% scale based on viewport width (1440px base)
+- **Drag Threshold**: 3px to differentiate click from drag
+- **Video Support**: Autoplay, muted, looping, no controls
+- **Hover Effects**: Title overlay with smooth gradient, configurable rotation
+
+### Adding New Canvas Items
+1. Add item to `src/data/canvasData.js` in appropriate group
+2. Configure position, size, rotation, hover effects
+3. Add thumbnail to `public/thumbnails/` directory
+4. Set contentType: 'image' (GIF/PNG), 'video' (MP4), or 'component'
+5. For components, add to componentMap in `CardContent.jsx`
+
+### Clock Component Specifics
+- Uses `suppressHydrationWarning` to prevent time-based hydration errors
+- Renders client-side only with mounted state check
+- Custom background color support: `#1e293b`
+- Padding creates visible border around content

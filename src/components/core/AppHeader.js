@@ -1,32 +1,12 @@
 "use client"
 
 import { GitHub, Moon, Sun, User } from 'react-feather';
-import { useEffect, useState } from 'react';
 import UIGlowLogo from '../Logo';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function AppHeader({ variant = 'primary', title, secondaryLogo }) {
-    const [isDark, setIsDark] = useState(false);
-
-    useEffect(() => {
-        // Check initial theme preference
-        if (localStorage.theme === 'dark' || 
-            (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setIsDark(true);
-            document.documentElement.classList.add('dark');
-        }
-    }, []);
-
-    const toggleTheme = () => {
-        setIsDark(!isDark);
-        if (isDark) {
-            document.documentElement.classList.remove('dark');
-            localStorage.theme = 'light';
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.theme = 'dark';
-        }
-    };
+    const { isDark, toggleTheme } = useTheme();
 
     return (
         <header className={`z-50 ${

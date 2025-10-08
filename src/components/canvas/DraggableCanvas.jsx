@@ -88,26 +88,36 @@ export default function DraggableCanvas({ items: initialItems }) {
     setCanvasOffset({ x: clampedX, y: clampedY });
   }, [canvasOffset]);
 
-  // Update canvas scale and reposition on resize
+  // Update canvas scale and reposition on resize (debounced)
   useEffect(() => {
-    const updateScale = () => {
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const calculatedScale = viewportWidth / BASE_WIDTH;
-      const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
-      setCanvasScale(clampedScale);
+    let timeoutId;
 
-      // Reposition viewport when scale changes (top-left anchor)
-      if (isMounted) {
-        const centerX = (viewportWidth / 2) - (500 * clampedScale);
-        const topMargin = 100; // Fixed margin from top
-        const offsetY = topMargin;
-        setCanvasOffset({ x: centerX, y: offsetY });
-      }
+    const updateScale = () => {
+      clearTimeout(timeoutId);
+
+      // Debounce: wait 150ms after last resize event before updating
+      timeoutId = setTimeout(() => {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const calculatedScale = viewportWidth / BASE_WIDTH;
+        const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
+        setCanvasScale(clampedScale);
+
+        // Reposition viewport when scale changes (top-left anchor)
+        if (isMounted) {
+          const centerX = (viewportWidth / 2) - (500 * clampedScale);
+          const topMargin = 100; // Fixed margin from top
+          const offsetY = topMargin;
+          setCanvasOffset({ x: centerX, y: offsetY });
+        }
+      }, 150);
     };
 
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateScale);
+    };
   }, [isMounted]);
 
   // Add wheel event listener with passive: false

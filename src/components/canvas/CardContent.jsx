@@ -1,11 +1,18 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, Suspense } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import CurvedArrow from './arrows/CurvedArrow';
+
+// Loading skeleton for dynamic components
+const ComponentSkeleton = () => (
+  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse">
+    <div className="w-8 h-8 border-4 border-slate-300 dark:border-slate-600 border-t-slate-600 dark:border-t-slate-300 rounded-full animate-spin" />
+  </div>
+);
 
 // Component registry
 const componentMap = {
@@ -95,7 +102,9 @@ function CardContent({ contentType, content, component, componentProps, title })
 
     return (
       <div className="w-full h-full flex items-center justify-center" suppressHydrationWarning>
-        <Component {...(componentProps || {})} />
+        <Suspense fallback={<ComponentSkeleton />}>
+          <Component {...(componentProps || {})} />
+        </Suspense>
       </div>
     );
   }
