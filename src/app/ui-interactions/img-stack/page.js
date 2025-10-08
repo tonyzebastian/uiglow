@@ -1,4 +1,10 @@
+import CenteredPageLayout from '@/components/core/CenteredPageLayout';
 import ImgStack from "./ImgStack"
+
+export const metadata = {
+  title: "Image Stack - UiGlow",
+  description: "Interactive layered image stacking component with smooth animations and hover effects.",
+};
 
 export default function ImgStackPage() {
   const imageUrls = [
@@ -10,12 +16,8 @@ export default function ImgStackPage() {
   ];
 
   return (
-    <main className="w-full p-6 flex">
-      <div className="w-full flex-1">
-        <div className="h-full flex items-center justify-center">
-          <ImgStack images={imageUrls} />
-        </div>
-      </div>
-    </main>
-  )
+    <CenteredPageLayout>
+      <ImgStack images={imageUrls} />
+    </CenteredPageLayout>
+  );
 }

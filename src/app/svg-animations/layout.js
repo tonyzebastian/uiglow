@@ -3,7 +3,7 @@ import React from "react"
 import AppHeader from "@/components/core/AppHeader"
 import { SidebarInset } from "@/components/ui/sidebar"
 import ClientSidebarWrapper from "@/components/core/ClientSidebarWrapper"
-import UIGlowLogoMini from "@/components/LogoMini"
+import UIGlowLogo from "@/components/Logo"
 import { navItems } from "./navigation-config";
 
 
@@ -12,7 +12,7 @@ import { navItems } from "./navigation-config";
 export default function SvgAnimationLayout({ children }) {
   return (
     <div className="flex flex-col h-screen">
-      <AppHeader variant="secondary" title="Svg Animations" secondaryLogo={<UIGlowLogoMini />}/>
+      <AppHeader variant="secondary" title="Svg Animations" secondaryLogo={<UIGlowLogo variant="mini" />}/>
       
       {/* Wrap only the interactive sidebar parts in a client component */}
       <ClientSidebarWrapper navItems={navItems}>

@@ -2,6 +2,11 @@ import CometHero from "./CometHero";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+export const metadata = {
+  title: "Comet Hero - UiGlow",
+  description: "Animated comet hero section with SVG path animations and download interface.",
+};
+
 export default function CoinFlipPage() {
   return (
     <div className="flex items-center justify-center w-full min-h-screen relative">

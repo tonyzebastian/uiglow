@@ -1,6 +1,11 @@
 import GradientBlob from '@/components/backgrounds/GradientBlob';
 import BreathingTextComp from '@/components/effects/BreathingText';
 
+export const metadata = {
+  title: "Breathing Hero - UiGlow",
+  description: "Animated hero section with breathing text effect and gradient blob background.",
+};
+
 export default function BreathingHeroPage() {
   return (
     <section className="relative w-full h-96 flex flex-col items-start justify-center rounded-lg pt-8">

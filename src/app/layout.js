@@ -1,5 +1,6 @@
 import { Bitter, Raleway } from "next/font/google";
 import "./globals.css";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const bitter = Bitter({
   variable: "--font-bitter",
@@ -26,7 +27,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${bitter.variable} ${raleway.variable}`}>
       <body>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

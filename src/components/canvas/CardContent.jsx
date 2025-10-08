@@ -6,6 +6,7 @@ import { Play } from 'lucide-react';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import CurvedArrow from './arrows/CurvedArrow';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Loading skeleton for dynamic components
 const ComponentSkeleton = () => (
@@ -18,7 +19,6 @@ const ComponentSkeleton = () => (
 const componentMap = {
   Clock: dynamic(() => import('@/app/experiences/clock/Clock')),
   ClockPreview: dynamic(() => import('@/components/previews/ClockPreview')),
-  JellyTagsSingle: dynamic(() => import('@/app/ui-interactions/jellytags/JellyTagsSingle')),
   CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
   ToolsPreview: dynamic(() => import('@/components/previews/ToolsPreview')),
 };
@@ -102,9 +102,11 @@ function CardContent({ contentType, content, component, componentProps, title })
 
     return (
       <div className="w-full h-full flex items-center justify-center" suppressHydrationWarning>
-        <Suspense fallback={<ComponentSkeleton />}>
-          <Component {...(componentProps || {})} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<ComponentSkeleton />}>
+            <Component {...(componentProps || {})} />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     );
   }

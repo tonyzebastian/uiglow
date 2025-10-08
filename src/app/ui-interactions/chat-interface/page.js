@@ -1,7 +1,10 @@
-'use client';
-
 import React from 'react';
 import ChatComponent from './ChatComponent';
+
+export const metadata = {
+  title: "Chat Interface - UiGlow",
+  description: "Modern chat interface component with message bubbles, typing indicators, and smooth animations.",
+};
 
 // ============================================================================
 // CHAT INTERFACE PAGE

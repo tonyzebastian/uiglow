@@ -1,5 +1,10 @@
 import SphereImageGrid from './SphereImageGrid'
 
+export const metadata = {
+  title: "Image Sphere - UiGlow",
+  description: "3D spherical image projection with interactive rotation and physics-based momentum.",
+};
+
 // ==========================================
 // EASY CONFIGURATION - Edit these values to customize the component
 // ==========================================
@@ -114,5 +119,5 @@ export default function ImgSpherePage() {
         {...CONFIG}
       />
     </main>
-  )
+  );
 }

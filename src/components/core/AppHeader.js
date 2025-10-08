@@ -1,6 +1,6 @@
 "use client"
 
-import { GitHub, Moon, Sun, User } from 'react-feather';
+import { Github, Moon, Sun } from 'lucide-react';
 import UIGlowLogo from '../Logo';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
@@ -67,7 +67,7 @@ export default function AppHeader({ variant = 'primary', title, secondaryLogo })
                                     rel="noopener noreferrer"
                                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                 >
-                                    <GitHub size={16} className="text-slate-700 dark:text-slate-300" />
+                                    <Github size={16} className="text-slate-700 dark:text-slate-300" />
                                 </a>
                             </TooltipTrigger>
                             <TooltipContent side="bottom">Github Repo</TooltipContent>

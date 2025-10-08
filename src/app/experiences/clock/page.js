@@ -6,6 +6,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+export const metadata = {
+  title: "World Clock - UiGlow",
+  description: "Visual representation of all major timezones with live analog clocks and interactive tooltips.",
+};
+
 const timeZones = [
   { offset: -12, name: "Baker Island Time (BIT)" },
   { offset: -11, name: "Niue Time (NUT)" },

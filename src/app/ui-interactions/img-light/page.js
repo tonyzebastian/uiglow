@@ -1,5 +1,10 @@
 import ImageSpotlight from "./ImageSpotlight"
 
+export const metadata = {
+  title: "Image Spotlight - UiGlow",
+  description: "Interactive image spotlight effect with dynamic lighting and smooth cursor tracking.",
+};
+
 export default function ImageSpotlightPage() {
   return (
     <main className="w-full p-6">

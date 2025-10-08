@@ -1,5 +1,10 @@
 import ImageLoader from './ImageLoader'
 
+export const metadata = {
+  title: "Image Loading - UiGlow",
+  description: "Creative image loading animations with skeleton screens and fade effects.",
+};
+
 export default function ImageLoadingPage() {
   return (
     <div className="min-h-screen p-8">

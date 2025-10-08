@@ -4,6 +4,11 @@ import {
   CardContent,
 } from "@/components/ui/card"
 
+export const metadata = {
+  title: "Upvote - UiGlow",
+  description: "Interactive upvote button component with smooth animations and counter effects.",
+};
+
 export default function UpvotePage() {
   return (
     <main className="flex flex-col items-center p-6">
