@@ -2,13 +2,11 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { useRouter } from 'next/navigation';
 import CardContent from './CardContent';
 
 const DRAG_THRESHOLD = 3; // pixels to move before it's considered a drag
 
-export default function DraggableItem({ item, onDrag, canvasOffset }) {
-  const router = useRouter();
+export default function DraggableItem({ item, onDrag, onItemClick, canvasOffset }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, itemX: 0, itemY: 0, hasMoved: false });
@@ -46,17 +44,19 @@ export default function DraggableItem({ item, onDrag, canvasOffset }) {
 
   const handleMouseUp = useCallback(() => {
     if (isDragging) {
-      // If it was a click (not a drag) and item is clickable, navigate
+      // If it was a click (not a drag) and item is clickable, handle navigation
       if (!dragStartRef.current.hasMoved && item.clickable && item.link) {
+        // For tools or items that open in new tab, open directly
         if (item.openInNewTab) {
           window.open(item.link, '_blank');
         } else {
-          router.push(item.link);
+          // For other items, open in modal
+          onItemClick(item);
         }
       }
       setIsDragging(false);
     }
-  }, [isDragging, item, router]);
+  }, [isDragging, item, onItemClick]);
 
   useEffect(() => {
     if (isDragging) {

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
 import DraggableItem from './DraggableItem';
+import ContentModal from './ContentModal';
 
 const CANVAS_SIZE = 10000; // Large canvas boundary (10000px in each direction)
 const BASE_WIDTH = 1440; // Base design width
@@ -15,6 +16,8 @@ export default function DraggableCanvas({ items: initialItems }) {
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [canvasScale, setCanvasScale] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
+  const [modalItem, setModalItem] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, canvasX: 0, canvasY: 0 });
   const canvasRef = useRef(null);
 
@@ -155,35 +158,56 @@ export default function DraggableCanvas({ items: initialItems }) {
     );
   };
 
+  // Handle opening modal
+  const handleItemClick = (item) => {
+    setModalItem(item);
+    setIsModalOpen(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalItem(null);
+  };
+
   return (
-    <div
-      ref={canvasRef}
-      className={`relative w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 canvas-background ${
-        isDraggingCanvas ? 'cursor-grabbing' : 'cursor-default'
-      }`}
-      onMouseDown={handleCanvasMouseDown}
-    >
+    <>
       <div
-        className="absolute inset-0"
-        style={{
-          pointerEvents: 'none',
-          transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasScale})`,
-          transformOrigin: 'top left',
-          opacity: isMounted ? 1 : 0,
-          transition: isMounted ? 'none' : 'opacity 0s',
-        }}
+        ref={canvasRef}
+        className={`relative w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 canvas-background ${
+          isDraggingCanvas ? 'cursor-grabbing' : 'cursor-default'
+        }`}
+        onMouseDown={handleCanvasMouseDown}
       >
-        <div style={{ pointerEvents: 'auto' }}>
-          {items.map(item => (
-            <DraggableItem
-              key={item.id}
-              item={item}
-              onDrag={handleItemDrag}
-              canvasOffset={canvasOffset}
-            />
-          ))}
+        <div
+          className="absolute inset-0"
+          style={{
+            pointerEvents: 'none',
+            transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasScale})`,
+            transformOrigin: 'top left',
+            opacity: isMounted ? 1 : 0,
+            transition: isMounted ? 'none' : 'opacity 0s',
+          }}
+        >
+          <div style={{ pointerEvents: 'auto' }}>
+            {items.map(item => (
+              <DraggableItem
+                key={item.id}
+                item={item}
+                onDrag={handleItemDrag}
+                onItemClick={handleItemClick}
+                canvasOffset={canvasOffset}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      <ContentModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        item={modalItem}
+      />
+    </>
   );
 }
