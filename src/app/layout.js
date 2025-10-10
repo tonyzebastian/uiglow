@@ -26,6 +26,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${merriweather.variable} ${raleway.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Ensure light mode is set immediately (before React hydration)
+              document.documentElement.classList.remove('dark');
+            `,
+          }}
+        />
+      </head>
       <body>
         <ErrorBoundary>
           {children}

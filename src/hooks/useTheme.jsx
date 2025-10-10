@@ -7,19 +7,14 @@ export function useTheme() {
     // SSR safety check
     if (typeof window === 'undefined') return;
 
-    // Check initial theme preference
-    const isDarkMode = localStorage.theme === 'dark' ||
-      (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-    setIsDark(isDarkMode);
-    document.documentElement.classList.toggle('dark', isDarkMode);
+    // Default to light mode (no localStorage)
+    document.documentElement.classList.remove('dark');
   }, []);
 
   const toggleTheme = useCallback(() => {
     const newTheme = !isDark;
     setIsDark(newTheme);
     document.documentElement.classList.toggle('dark', newTheme);
-    localStorage.theme = newTheme ? 'dark' : 'light';
   }, [isDark]);
 
   return { isDark, toggleTheme };

@@ -48,13 +48,13 @@ export default function ContentModal({ isOpen, onClose, item }) {
           >
             {/* Modal content */}
             <div
-              className="w-full h-full bg-slate-900 rounded-lg overflow-hidden shadow-2xl"
+              className="w-full h-full bg-background rounded-lg overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Iframe content */}
               <iframe
                 src={item.link}
-                className="w-full h-full border-0 bg-slate-900"
+                className="w-full h-full border-0 bg-background"
                 title={item.title || 'Content'}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />

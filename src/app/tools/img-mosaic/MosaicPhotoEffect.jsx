@@ -4,14 +4,17 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Download, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 export default function MosaicPhotoEffect({
   grainTextureUrl = '/tools/texture-pattern.jpg',
-  defaultImage = 'https://res.cloudinary.com/dctgknnt7/image/upload/v1758731403/1_d8uozd.jpg'
+  defaultImage = 'https://res.cloudinary.com/dctgknnt7/image/upload/v1760098276/mosaic_raw_qizmph.jpg'
 }) {
   // State
   const [image, setImage] = useState(defaultImage);
   const [tileSize, setTileSize] = useState(15);
+  const [resolution, setResolution] = useState(50);
   const [isProcessing, setIsProcessing] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [progress, setProgress] = useState(0);
@@ -181,16 +184,10 @@ export default function MosaicPhotoEffect({
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      // Calculate scaled dimensions to fit viewport (max 800px)
-      const maxDimension = 800;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > maxDimension || height > maxDimension) {
-        const scale = Math.min(maxDimension / width, maxDimension / height);
-        width = Math.floor(width * scale);
-        height = Math.floor(height * scale);
-      }
+      // Apply resolution percentage to original dimensions
+      const scale = resolution / 100;
+      let width = Math.floor(img.width * scale);
+      let height = Math.floor(img.height * scale);
 
       // Set canvas dimensions
       sourceCanvas.width = width;
@@ -290,7 +287,7 @@ export default function MosaicPhotoEffect({
     };
 
     img.src = image;
-  }, [image, tileSize, calculateAverageColor, drawTile, blendWithNeighbors]);
+  }, [image, tileSize, resolution, calculateAverageColor, drawTile, blendWithNeighbors]);
 
   // Handle image upload
   const handleImageUpload = (e) => {
@@ -335,7 +332,7 @@ export default function MosaicPhotoEffect({
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [tileSize, image, generateMosaic]);
+  }, [tileSize, resolution, image, generateMosaic]);
 
   // Initial mosaic generation
   useEffect(() => {
@@ -345,107 +342,102 @@ export default function MosaicPhotoEffect({
   }, [image]);
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-950">
-      {/* Hidden canvases for processing */}
+    <div className="flex flex-col flex-1 relative">
+      {/* Hidden elements */}
       <canvas ref={sourceCanvasRef} className="hidden" />
+      <img ref={grainImageRef} src={grainTextureUrl} alt="" className="hidden" crossOrigin="anonymous" />
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
-      {/* Grain texture (preload) */}
-      <img
-        ref={grainImageRef}
-        src={grainTextureUrl}
-        alt=""
-        className="hidden"
-        crossOrigin="anonymous"
-      />
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        className="hidden"
-      />
-
-      {!image ? (
-        // Upload Area
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-64 h-64 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center gap-4 hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
-            <ImageIcon className="w-16 h-16 text-slate-400 dark:text-slate-600" />
-            <p className="text-sm text-slate-500 dark:text-slate-400">No image uploaded</p>
-          </div>
-
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            size="lg"
-          >
-            <Upload className="w-4 h-4" />
-            Upload Image
-          </Button>
-        </div>
-      ) : (
-        // Mosaic Display & Controls (merged)
-        <div className="w-full max-w-6xl">
-          <div className="relative bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
-            {/* Controls at top */}
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    Tile Size:
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="50"
-                    value={tileSize}
-                    onChange={(e) => setTileSize(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="text-sm font-mono text-slate-600 dark:text-slate-400 w-12 text-right">
-                    {tileSize}px
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    <Upload className="w-4 h-4" />
-                    New Image
-                  </Button>
-
-                  <Button
-                    onClick={exportMosaic}
-                    disabled={isProcessing}
-                    size="sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export PNG
-                  </Button>
-                </div>
+      {/* Canvas Area - Fixed viewport container */}
+      <div
+        className="m-8 overflow-auto rounded-lg bg-slate-50 dark:bg-slate-900 scrollbar-hide border border-slate-200"
+        style={{ height: 'calc(100vh - 200px)' }}
+      >
+        {!image ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-64 h-64 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center gap-4 hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
+                <ImageIcon className="w-16 h-16 text-slate-400 dark:text-slate-600" />
+                <p className="text-sm text-slate-500 dark:text-slate-400">No image uploaded</p>
               </div>
-
-              {/* Progress bar */}
-              {isProcessing && (
-                <Slider value={[progress]} max={100} className="h-2" disabled />
-              )}
+              <Button onClick={() => fileInputRef.current?.click()} size="lg">
+                <Upload className="w-4 h-4" />
+                Upload Image
+              </Button>
             </div>
-
-            {/* Mosaic Preview */}
-            <div className="relative flex items-center justify-center">
-              {isProcessing && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg">
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Processing... {Math.round(progress)}%</div>
-                </div>
-              )}
-
+          </div>
+        ) : (
+          <div className="min-w-full min-h-full flex items-center justify-center relative">
+            {isProcessing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg">
+                <div className="text-sm text-slate-600 dark:text-slate-400">Processing... {Math.round(progress)}%</div>
+              </div>
+            )}
+            <div className="p-6">
               <canvas
                 ref={mosaicCanvasRef}
-                className="max-w-full h-auto block"
+                className="block rounded-lg shadow border border-slate-200 dark:border-slate-700"
               />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Toolbar */}
+      {image && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center gap-10">
+            {/* Left Section */}
+            <div className="flex items-center gap-6">
+              {/* Quality Control */}
+              <Select value={resolution.toString()} onValueChange={(value) => setResolution(parseInt(value))}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10%</SelectItem>
+                  <SelectItem value="25">25%</SelectItem>
+                  <SelectItem value="50">50%</SelectItem>
+                  <SelectItem value="75">75%</SelectItem>
+                  <SelectItem value="100">100%</SelectItem>
+                  <SelectItem value="125">125%</SelectItem>
+                  <SelectItem value="150">150%</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Tile Size Control */}
+              <input
+                type="range"
+                min="5"
+                max="50"
+                value={tileSize}
+                onChange={(e) => setTileSize(parseInt(e.target.value))}
+                className="w-[250px] h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+
+            {/* Separator */}
+            <Separator orientation="vertical" className="h-8" />
+
+            {/* Right Section */}
+            <div className="flex items-center gap-3">
+              {/* Upload Button */}
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                variant="secondary"
+                size="sm"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+
+              {/* Download Button */}
+              <Button
+                onClick={exportMosaic}
+                disabled={isProcessing}
+                size="sm"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>

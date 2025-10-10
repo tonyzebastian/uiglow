@@ -20,6 +20,7 @@ const componentMap = {
   Clock: dynamic(() => import('@/app/experiences/clock/Clock')),
   ClockPreview: dynamic(() => import('@/components/previews/ClockPreview')),
   BreathingHero: dynamic(() => import('@/components/effects/BreathingHero')),
+  CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
 };
 
 function CardContent({ contentType, content, component, componentProps, title }) {

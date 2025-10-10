@@ -41,13 +41,13 @@ const createGroupTitle = (id, title, position, width = 280) => ({
   padding: 0,
 });
 
-const createArrow = (id, direction, position, rotation = -20) => ({
+const createArrow = (id, direction, position, rotation = -20, size = { width: 150, height: 50 }) => ({
   id: `${id}-arrow`,
   contentType: 'arrow',
   content: direction,
   title: 'Arrow',
   position,
-  size: { width: 150, height: 50 },
+  size,
   rotation,
   clickable: false,
   shadow: false,
@@ -113,12 +113,13 @@ export const canvasItems = [
   createArrow('tools', 'spec-right', { x: 918, y: 207 }, 20),
 
   createImageCard('mosaic', {
-    content: '/thumbnails/mosaic.png',
+    content: '/thumbnails/mosaic.jpg',
     title: 'Image Mosaic',
     position: { x: 1053, y: 81 },
     size: { width: 250, height: 180 },
     rotation: -2,
     link: '/tools/img-mosaic',
+    openInNewTab: false,
     hoverRotation: 3,
   }),
 
@@ -135,8 +136,7 @@ export const canvasItems = [
 
   // ==================== GROUP 3: INTERACTIONS (Bottom Left) ====================
   createGroupTitle('interactions', 'React Components', { x: -1, y: 547 }, 320),
-  createArrow('interactions', 'down-left', { x: 3, y: 603 }),
-
+  createArrow('interactions', 'spec3-right', { x: 3, y: 603 }, -35, { width: 90, height: 60 }),
   createVideoCard('img-stack', {
     content: '/thumbnails/image_stack.mp4',
     title: 'Image Stack',
@@ -205,15 +205,15 @@ export const canvasItems = [
 
   // ==================== GROUP 4: SVG ANIMATIONS (Bottom Right) ====================
   createGroupTitle('svg', 'Untitled', { x: 506, y: 632 }, 380),
-  createArrow('svg', 'down-right', { x: 688, y: 712 }),
+  createArrow('svg', 'spec3-left', { x: 688, y: 712 }, 35, { width: 90, height: 60 }),
 
-  createImageCard('gradient', {
-    content: '/thumbnails/mosaic.png', // TODO: Replace with actual coinflip thumbnail
-    title: 'Gradient Hero',
-    position: { x: 821, y: 666 },
+  createComponentCard('coinflip', 'CoinFlip', {
+    title: 'Coin Flip',
+    position: { x: 653, y: 852 },
     size: { width: 240, height: 170 },
     rotation: 1,
     link: '/svg-animations/coinflip',
+    backgroundColor: '#f8fafc',
     openInNewTab: false,
     hoverRotation: -2,
   }),
@@ -221,7 +221,7 @@ export const canvasItems = [
   createVideoCard('comet', {
     content: '/thumbnails/comet.mp4',
     title: 'Comet Hero',
-    position: { x: 653, y: 852 },
+    position: { x: 821, y: 666 },
     size: { width: 240, height: 170 },
     rotation: 1,
     link: '/svg-animations/comethero',
