@@ -68,7 +68,7 @@ uiglow/
 - **Tailwind CSS 3.4.1** - Utility-first CSS framework
 - **Shadcn/ui** - High-quality accessible components
 - **CSS Variables** - Dynamic theming system
-- **Custom Fonts** - Raleway (body) & Bitter (headings)
+- **Custom Fonts** - Raleway (body) & Merriweather (headings)
 
 ### Animation & Interaction
 - **Motion 12.22.0** - Performant animation library
@@ -124,7 +124,7 @@ npm run preview      # Preview production build
 
 ### Typography
 - **Body Text**: Raleway (300-700 weights)
-- **Headings**: Bitter (500-700 weights)
+- **Headings**: Merriweather (400, 700, 900 weights)
 - **Loading**: Next.js font optimization with `display: 'swap'`
 
 ### Color Palette

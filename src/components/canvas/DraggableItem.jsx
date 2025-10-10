@@ -12,6 +12,11 @@ export default function DraggableItem({ item, onDrag, onItemClick, canvasOffset 
   const dragStartRef = useRef({ x: 0, y: 0, itemX: 0, itemY: 0, hasMoved: false });
 
   const handleMouseDown = (e) => {
+    // If item is not draggable (clickable: false and id is breathing-hero), don't handle mouse events
+    if (!item.clickable && item.id === 'breathing-hero') {
+      return;
+    }
+
     e.stopPropagation(); // Prevent canvas drag
     dragStartRef.current = {
       x: e.clientX,
@@ -70,7 +75,7 @@ export default function DraggableItem({ item, onDrag, onItemClick, canvasOffset 
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const shadowClass = item.shadow ? 'shadow-lg' : '';
-  const cursorClass = item.clickable ? 'cursor-pointer' : 'cursor-move';
+  const cursorClass = item.id === 'breathing-hero' ? 'cursor-default' : (item.clickable ? 'cursor-pointer' : 'cursor-move');
 
   // Handle outer container background (padding area)
   const getOuterBackgroundStyle = () => {
@@ -86,7 +91,31 @@ export default function DraggableItem({ item, onDrag, onItemClick, canvasOffset 
   };
 
   const hoverRotation = item.hoverRotation || 0; // Get configurable hover rotation
-  const showTitleOnHover = item.contentType !== 'group-title' && item.contentType !== 'arrow' && item.contentType !== 'text';
+  const showTitleOnHover = item.contentType !== 'group-title' && item.contentType !== 'arrow' && item.contentType !== 'text' && item.id !== 'breathing-hero';
+
+  // Special rendering for breathing hero - no card structure
+  if (item.id === 'breathing-hero') {
+    return (
+      <div
+        className="absolute select-none"
+        style={{
+          left: item.position.x,
+          top: item.position.y,
+          width: item.size.width,
+          height: item.size.height,
+          zIndex: 1,
+        }}
+      >
+        <CardContent
+          contentType={item.contentType}
+          content={item.content}
+          component={item.component}
+          componentProps={item.componentProps}
+          title={item.title}
+        />
+      </div>
+    );
+  }
 
   return (
     <motion.div

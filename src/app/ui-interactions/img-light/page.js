@@ -1,4 +1,5 @@
 import ImageSpotlight from "./ImageSpotlight"
+import CenteredPageLayout from "@/components/core/CenteredPageLayout"
 
 export const metadata = {
   title: "Image Spotlight - UiGlow",
@@ -7,7 +8,7 @@ export const metadata = {
 
 export default function ImageSpotlightPage() {
   return (
-    <main className="w-full p-6">
+    <CenteredPageLayout>
       <div className="flex justify-center gap-2">
         <ImageSpotlight
           src="https://res.cloudinary.com/dctgknnt7/image/upload/v1758731403/1_d8uozd.jpg"
@@ -31,6 +32,6 @@ export default function ImageSpotlightPage() {
           height={400}
         />
       </div>
-    </main>
+    </CenteredPageLayout>
   )
 }

@@ -60,7 +60,7 @@ src/
 
 ### Typography
 - **Body**: Raleway (300-700)
-- **Headings**: Bitter (500-700)
+- **Headings**: Merriweather (400, 700, 900)
 - **Loading**: `display: 'swap'` for optimal performance
 
 ### Theme

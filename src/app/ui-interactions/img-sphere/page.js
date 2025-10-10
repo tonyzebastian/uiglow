@@ -1,4 +1,5 @@
 import SphereImageGrid from './SphereImageGrid'
+import CenteredPageLayout from '@/components/core/CenteredPageLayout'
 
 export const metadata = {
   title: "Image Sphere - UiGlow",
@@ -113,11 +114,11 @@ const CONFIG = {
 
 export default function ImgSpherePage() {
   return (
-    <main className="w-full p-6 flex justify-center items-center min-h-screen">
+    <CenteredPageLayout>
       <SphereImageGrid
         images={IMAGES}
         {...CONFIG}
       />
-    </main>
+    </CenteredPageLayout>
   );
 }

@@ -1,12 +1,12 @@
-import { Bitter, Raleway } from "next/font/google";
+import { Merriweather, Raleway } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const bitter = Bitter({
-  variable: "--font-bitter",
+const merriweather = Merriweather({
+  variable: "--font-merriweather",
   subsets: ["latin"],
   // Typically for headings you might only need a few weights
-  weight: ["500", "600", "700"],
+  weight: ["400", "700", "900"],
   display: 'swap',
 });
 
@@ -25,7 +25,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${bitter.variable} ${raleway.variable}`}>
+    <html lang="en" className={`${merriweather.variable} ${raleway.variable}`}>
       <body>
         <ErrorBoundary>
           {children}

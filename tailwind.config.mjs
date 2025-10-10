@@ -10,7 +10,7 @@ const config = {
   	extend: {
 		fontFamily: {
 			sans: ['var(--font-raleway)'], // Default font
-			heading: ['var(--font-bitter)'], // Custom font for headings
+			heading: ['var(--font-merriweather)'], // Custom font for headings
 		  },
   		colors: {
   			background: 'hsl(var(--background))',

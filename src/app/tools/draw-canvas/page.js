@@ -1,6 +1,5 @@
 import DrawingCanvas from './DrawingCanvas';
 import AppHeader from "@/components/core/AppHeader";
-import UIGlowLogo from "@/components/Logo";
 
 export const metadata = {
   title: "Drawing Canvas - UiGlow",
@@ -43,7 +42,7 @@ export default function DrawingPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <AppHeader variant="secondary" title="Drawing Canvas" secondaryLogo={<UIGlowLogo variant="mini" />}/>
+      <AppHeader title="Drawing Canvas" />
       <div className="flex-1 flex items-center justify-center p-8">
         <DrawingCanvas
           canvasConfig={canvasConfig}

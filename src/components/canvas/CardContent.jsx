@@ -19,8 +19,7 @@ const ComponentSkeleton = () => (
 const componentMap = {
   Clock: dynamic(() => import('@/app/experiences/clock/Clock')),
   ClockPreview: dynamic(() => import('@/components/previews/ClockPreview')),
-  CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
-  ToolsPreview: dynamic(() => import('@/components/previews/ToolsPreview')),
+  BreathingHero: dynamic(() => import('@/components/effects/BreathingHero')),
 };
 
 function CardContent({ contentType, content, component, componentProps, title }) {
@@ -72,7 +71,7 @@ function CardContent({ contentType, content, component, componentProps, title })
   if (contentType === 'group-title') {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <h2 className="text-xl font-medium text-slate-800 dark:text-slate-100 font-sans">
+        <h2 className="font-medium text-orange-900 dark:text-slate-100 font-heading">
           {content}
         </h2>
       </div>

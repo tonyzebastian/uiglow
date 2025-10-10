@@ -174,7 +174,7 @@ export default function DraggableCanvas({ items: initialItems }) {
     <>
       <div
         ref={canvasRef}
-        className={`relative w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 canvas-background ${
+        className={`relative w-full h-screen overflow-hidden bg-orange-50 dark:bg-slate-950 canvas-background ${
           isDraggingCanvas ? 'cursor-grabbing' : 'cursor-default'
         }`}
         onMouseDown={handleCanvasMouseDown}

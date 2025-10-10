@@ -1,94 +1,42 @@
 "use client"
 
-import { Github, Moon, Sun } from 'lucide-react';
-import UIGlowLogo from '../Logo';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip';
-import { useTheme } from '@/hooks/useTheme';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
-export default function AppHeader({ variant = 'primary', title, secondaryLogo }) {
-    const { isDark, toggleTheme } = useTheme();
-
+export default function AppHeader({ title }) {
     return (
-        <header className={`z-50 ${
-            variant === 'primary'
-                ? 'fixed top-4 left-1/2 -translate-x-1/2 w-auto'
-                : 'w-full border-b border-slate-200 dark:border-slate-900'
-        }`}>
-            <div
-                className={`h-full flex items-center justify-between ${
-                    variant === 'primary'
-                        ? 'bg-white dark:bg-slate-900 rounded-full shadow-lg border border-slate-200 dark:border-slate-800 py-2 px-8 gap-12 min-w-[600px]'
-                        : 'bg-white dark:bg-slate-950 w-full px-6 py-4'
-                }`}
-            >
-                <div className="flex items-center gap-4">
-                    <a
-                        href="/"
-                        className="flex items-center gap-2"
-                    >
-                        {variant === 'secondary' ? (
+        <header className="w-full z-50">
+            <div className="w-full px-6 py-4">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="https://www.tonyzeb.design/" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                                Tony Sebastian
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                                Playground
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        {title && (
                             <>
-                                {secondaryLogo}
-                                {title && (
-                                    <>
-                                        <span className="text-slate-400 dark:text-slate-600 text-2xl font-light">/</span>
-                                        <span className="text-slate-700 dark:text-slate-300 text-base font-normal font-sans tracking-wide hover:dark:text-blue-300 hover:text-blue-800">
-                                            {title}
-                                        </span>
-                                    </>
-                                )}
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    <span className="text-slate-900 dark:text-slate-100 font-medium">
+                                        {title}
+                                    </span>
+                                </BreadcrumbItem>
                             </>
-                        ) : (
-                            <UIGlowLogo />
                         )}
-                    </a>
-                </div>
-
-                <TooltipProvider>
-                    <div className="flex items-center gap-4">
-                        <a
-                            href="https://www.tonyzeb.design/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                        >
-                            <img
-                                src="/profile.jpg"
-                                alt="Tony Sebastian"
-                                className="w-6 h-6 rounded-full object-cover"
-                            />
-                        </a>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <a
-                                    href="https://github.com/tonyzebastian/uiglow"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                >
-                                    <Github size={16} className="text-slate-700 dark:text-slate-300" />
-                                </a>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">Github Repo</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    onClick={toggleTheme}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                >
-                                    {isDark
-                                        ? <Sun size={16} className="text-slate-700 dark:text-slate-300" />
-                                        : <Moon size={16} className="text-slate-700 dark:text-slate-300" />
-                                    }
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">Switch Theme</TooltipContent>
-                        </Tooltip>
-                    </div>
-                </TooltipProvider>
+                    </BreadcrumbList>
+                </Breadcrumb>
             </div>
         </header>
     );
