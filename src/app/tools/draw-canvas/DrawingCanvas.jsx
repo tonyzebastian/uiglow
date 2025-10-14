@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Trash2, Download, Upload } from 'lucide-react';
+import DrawingToolbar from './DrawingToolbar';
 
 // Constants
 const CORNER_RADIUS = 12;
@@ -32,37 +32,19 @@ const drawRoundedRectPath = (ctx, x, y, width, height, radius) => {
 
 const DrawingCanvas = forwardRef(({
   // Canvas config
-  canvasConfig = {
-    width: 1200,
-    height: 800,
-    borderColor: '#d1d5db',
-    showDottedPattern: true
-  },
+  canvasConfig = {},
   // Image config
-  imageConfig = {
-    urls: [],
-    size: 600,
-    padding: 20,
-    gap: 20,
-    showShadow: true,
-    showImages: true
-  },
+  imageConfig = {},
   // Drawing config
-  drawingConfig = {
-    strokeColor: '#000000',
-    strokeWidth: 2
-  },
-  // Button config
-  buttonConfig = {
-    showUpload: true,
-    showClear: true,
-    showSave: true
-  }
+  drawingConfig = {},
+  // Toolbar config
+  toolbarConfig = {},
+  // Ref for external access
 }, ref) => {
   // Destructure configs with defaults
   const {
-    width = 1200,
-    height = 800,
+    width = 800,
+    height = 501,
     borderColor = '#d1d5db',
     showDottedPattern = true
   } = canvasConfig;
@@ -81,17 +63,25 @@ const DrawingCanvas = forwardRef(({
     strokeWidth = 2
   } = drawingConfig;
 
+  // Toolbar config: Controls toolbar visibility and button options
+  // - show: true/false to toggle entire toolbar
+  // - showUpload/showClear/showSave: individual button visibility
   const {
+    show: showToolbar = true,
     showUpload = true,
     showClear = true,
     showSave = true
-  } = buttonConfig;
+  } = toolbarConfig;
 
   // State
   const [isDrawing, setIsDrawing] = useState(false);
   const [backgroundImagesData, setBackgroundImagesData] = useState([]);
-  const [isHovering, setIsHovering] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [currentColor, setCurrentColor] = useState(strokeColor);
+  const [currentStrokeWidth, setCurrentStrokeWidth] = useState(strokeWidth);
+  const [showDottedPatternState, setShowDottedPatternState] = useState(showDottedPattern);
+  const [showImagesState, setShowImagesState] = useState(showImages);
+  const [saveCounter, setSaveCounter] = useState(1);
 
   // Refs
   const canvasRef = useRef(null);
@@ -109,7 +99,7 @@ const DrawingCanvas = forwardRef(({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw dotted pattern if enabled
-    if (showDottedPattern) {
+    if (showDottedPatternState) {
       ctx.fillStyle = '#d1d5db';
       for (let x = 0; x < canvas.width; x += DOT_SPACING) {
         for (let y = 0; y < canvas.height; y += DOT_SPACING) {
@@ -117,7 +107,7 @@ const DrawingCanvas = forwardRef(({
         }
       }
     }
-  }, [showDottedPattern]);
+  }, [showDottedPatternState]);
 
   // Helper function to draw a single image with padding and shadow
   const drawSingleImage = useCallback((ctx, img, x, y, imgWidth, imgHeight) => {
@@ -171,19 +161,28 @@ const DrawingCanvas = forwardRef(({
     const ctx = canvas.getContext('2d');
     ctxRef.current = ctx;
 
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = currentStrokeWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     drawBackground();
-  }, [width, height, strokeColor, strokeWidth, drawBackground]);
+  }, [width, height, drawBackground]);
+
+  // Update stroke style when color or width changes
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = currentStrokeWidth;
+  }, [currentColor, currentStrokeWidth]);
 
   // Load background images (from props or uploaded)
   useEffect(() => {
     const imageSources = uploadedImages.length > 0 ? uploadedImages : urls;
 
-    if (!showImages || !imageSources || imageSources.length === 0) {
+    if (!showImagesState || !imageSources || imageSources.length === 0) {
       setBackgroundImagesData([]);
       drawBackground();
       return;
@@ -204,7 +203,7 @@ const DrawingCanvas = forwardRef(({
       img.onload = () => {
         if (!isMounted) return;
 
-        // Calculate scaled dimensions
+        // Calculate scaled dimensions based on imageSize
         const scale = Math.min(imageSize / img.width, imageSize / img.height);
         const imgWidth = img.width * scale;
         const imgHeight = img.height * scale;
@@ -229,9 +228,25 @@ const DrawingCanvas = forwardRef(({
           const gridWidth = (imageSize * cols) + (imageGap * (cols - 1));
           const gridHeight = (imageSize * rows) + (imageGap * (rows - 1));
 
+          // Calculate available canvas space (with padding for borders)
+          const canvasPadding = imagePadding * 4; // Extra padding from edges
+          const maxGridWidth = canvas.width - canvasPadding;
+          const maxGridHeight = canvas.height - canvasPadding;
+
+          // Scale down grid if it exceeds canvas dimensions
+          let gridScale = 1;
+          if (gridWidth > maxGridWidth || gridHeight > maxGridHeight) {
+            gridScale = Math.min(maxGridWidth / gridWidth, maxGridHeight / gridHeight);
+          }
+
+          // Apply scale to all image dimensions
+          const scaledImageSize = imageSize * gridScale;
+          const scaledGridWidth = gridWidth * gridScale;
+          const scaledGridHeight = gridHeight * gridScale;
+
           // Center the grid on canvas
-          const startX = (canvas.width - gridWidth) / 2;
-          const startY = (canvas.height - gridHeight) / 2;
+          const startX = (canvas.width - scaledGridWidth) / 2;
+          const startY = (canvas.height - scaledGridHeight) / 2;
 
           // Draw each image in grid
           const imagesData = [];
@@ -239,22 +254,26 @@ const DrawingCanvas = forwardRef(({
             const col = idx % cols;
             const row = Math.floor(idx / cols);
 
-            // Calculate cell position
-            const cellX = startX + (col * (imageSize + imageGap));
-            const cellY = startY + (row * (imageSize + imageGap));
+            // Calculate cell position with scaled dimensions
+            const cellX = startX + (col * (scaledImageSize + imageGap * gridScale));
+            const cellY = startY + (row * (scaledImageSize + imageGap * gridScale));
+
+            // Scale image dimensions
+            const scaledImgWidth = imgData.width * gridScale;
+            const scaledImgHeight = imgData.height * gridScale;
 
             // Center image within cell
-            const x = cellX + (imageSize - imgData.width) / 2;
-            const y = cellY + (imageSize - imgData.height) / 2;
+            const x = cellX + (scaledImageSize - scaledImgWidth) / 2;
+            const y = cellY + (scaledImageSize - scaledImgHeight) / 2;
 
-            drawSingleImage(ctx, imgData.img, x, y, imgData.width, imgData.height);
+            drawSingleImage(ctx, imgData.img, x, y, scaledImgWidth, scaledImgHeight);
 
             imagesData.push({
               img: imgData.img,
               x,
               y,
-              width: imgData.width,
-              height: imgData.height
+              width: scaledImgWidth,
+              height: scaledImgHeight
             });
           });
 
@@ -274,7 +293,7 @@ const DrawingCanvas = forwardRef(({
     return () => {
       isMounted = false;
     };
-  }, [urls, uploadedImages, imageSize, imagePadding, showImageShadow, imageGap, showImages, drawBackground, drawSingleImage]);
+  }, [urls, uploadedImages, imageSize, imagePadding, showImageShadow, imageGap, showImagesState, drawBackground, drawSingleImage]);
 
   // Mouse event handlers
   const startDrawing = useCallback((e) => {
@@ -332,10 +351,12 @@ const DrawingCanvas = forwardRef(({
 
     const dataURL = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `drawing-${Date.now()}.png`;
+    link.download = `draw-canvas-${saveCounter}.png`;
     link.href = dataURL;
     link.click();
-  }, []);
+
+    setSaveCounter(prev => prev + 1);
+  }, [saveCounter]);
 
   // Handle image upload (supports multiple files)
   const handleImageUpload = useCallback((e) => {
@@ -370,69 +391,55 @@ const DrawingCanvas = forwardRef(({
   }), [handleClear, handleSave]);
 
   return (
-    <div
-      className="relative inline-block"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      <canvas
-        ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        className="border cursor-crosshair rounded-lg"
-        style={{
-          display: 'block',
-          borderColor
-        }}
-      />
+    <>
+      {/* Canvas Container */}
+      <div className="relative inline-block">
+        <canvas
+          ref={canvasRef}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          className="border cursor-crosshair rounded-lg"
+          style={{
+            display: 'block',
+            borderColor
+          }}
+        />
 
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleImageUpload}
-        className="hidden"
-      />
-
-      {/* Overlay Controls - Only visible on hover */}
-      <div
-        className={`absolute top-4 right-4 flex gap-2 transition-opacity duration-200 ${
-          isHovering ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        {showUpload && (
-          <button
-            onClick={handleUploadClick}
-            className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-lg border border-gray-200"
-            title="Upload image"
-          >
-            <Upload size={20} />
-          </button>
-        )}
-        {showClear && (
-          <button
-            onClick={handleClear}
-            className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-lg border border-gray-200"
-            title="Clear canvas"
-          >
-            <Trash2 size={20} />
-          </button>
-        )}
-        {showSave && (
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg shadow-lg"
-            title="Save drawing"
-          >
-            <Download size={20} />
-          </button>
-        )}
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImageUpload}
+          className="hidden"
+        />
       </div>
-    </div>
+
+      {/* Toolbar - Outside canvas container */}
+      {showToolbar && (
+        <div className="mt-6 flex justify-center">
+          <DrawingToolbar
+            currentColor={currentColor}
+            onColorChange={setCurrentColor}
+            strokeWidth={currentStrokeWidth}
+            onStrokeWidthChange={setCurrentStrokeWidth}
+            showImages={showImagesState}
+            onShowImagesChange={setShowImagesState}
+            showGrid={showDottedPatternState}
+            onShowGridChange={setShowDottedPatternState}
+            onUpload={handleUploadClick}
+            onClear={handleClear}
+            onSave={handleSave}
+            showUploadButton={showUpload}
+            showClearButton={showClear}
+            showSaveButton={showSave}
+          />
+        </div>
+      )}
+    </>
   );
 });
 
