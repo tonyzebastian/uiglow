@@ -1,11 +1,44 @@
 import MosaicPhotoEffect from './MosaicPhotoEffect';
 import AppHeader from "@/components/core/AppHeader";
-import UIGlowLogo from "@/components/Logo";
+
 
 export const metadata = {
-  title: "Image Mosaic - UiGlow",
-  description: "Create stunning photo mosaic effects with customizable grid patterns and animations.",
+  title: 'Image Mosaic ✦ Tony',
+  description: 'Stunning photo mosaic effects with customizable grid patterns',
+  keywords: 'design, canvas, creative coding, photo effect, mosaic, photoshop, effects',
+  author: 'Tony Sebastian',
+  robots: 'index,follow',
+  'mobile-web-app-capable': 'yes',
+  'apple-mobile-web-app-title': 'Image Mosaic ✦ Tony',
+  'apple-mobile-web-app-status-bar-style': 'black-translucent',
+  alternates: {
+    canonical: 'https://play.tonyzeb.design',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@tonyzebastian',
+    creator: '@tonyzebastian',
+    title: 'Image Mosaic ✦ Tony',
+    description: 'Stunning photo mosaic effects with customizable grid patterns',
+    image: 'https://play.tonyzeb.design/mosaic_preview.jpg',
+    imageAlt: 'Play ✦ Tony - UI Experiments & Interactions',
+  },
+  openGraph: {
+    title: 'Image Mosaic ✦ Tony',
+    description: 'Stunning photo mosaic effects with customizable grid patterns',
+    url: 'https://play.tonyzeb.design/',
+    siteName: 'Play ✦ Tony',
+    images: [{
+      url: 'https://play.tonyzeb.design/mosaic_preview.jpg',
+      alt: 'Play ✦ Tony - UI Experiments & Interactions',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'en_US',
+    type: 'website',
+  },
 };
+
 
 export default function ImgMosaicPage() {
   return (
