@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 
 export default function ImageLoader({
   src,
@@ -18,38 +18,33 @@ export default function ImageLoader({
   width,
   height
 }) {
+  // ============================================================================
+  // STATE
+  // ============================================================================
   const [isLoading, setIsLoading] = useState(true)
+  const [showImage, setShowImage] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [gridCells, setGridCells] = useState([])
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const containerRef = useRef(null)
+
+  // ============================================================================
+  // REFS
+  // ============================================================================
   const imageRef = useRef(null)
-  const imageLoadedRef = useRef(false)
-  const hasInitializedRef = useRef(false)
+  const processedRef = useRef(false)
+  const loadStartTimeRef = useRef(Date.now())
 
-  // Initialize dimensions from image element or props
-  useEffect(() => {
-    if (!hasInitializedRef.current && imageRef.current) {
-      // Try to get dimensions from the image element
-      const img = imageRef.current
-      if (img.complete && img.naturalWidth > 0) {
-        // Image already loaded, use its dimensions
-        const w = img.offsetWidth || parseInt(width) || img.naturalWidth
-        const h = img.offsetHeight || parseInt(height) || img.naturalHeight
-        setDimensions({ width: w, height: h })
-        hasInitializedRef.current = true
-      } else {
-        // Use prop dimensions or default
-        const w = parseInt(width) || 800
-        const h = parseInt(height) || 600
-        setDimensions({ width: w, height: h })
-        hasInitializedRef.current = true
-      }
-    }
-  }, [width, height])
+  // ============================================================================
+  // COMPUTED VALUES
+  // ============================================================================
+  const dimensions = useMemo(() => ({
+    width: parseInt(width) || 800,
+    height: parseInt(height) || 600
+  }), [width, height])
 
-  // Generate grid when dimensions are set
+  // ============================================================================
+  // GRID GENERATION
+  // ============================================================================
   useEffect(() => {
     if (dimensions.width === 0 || dimensions.height === 0) return
 
@@ -66,6 +61,7 @@ export default function ImageLoader({
           y: row * cellWithGap,
           blinkDelay: Math.random() * blinkSpeed,
           fadeDelay: Math.random() * fadeOutDuration,
+          initialOpacity: Math.random() * 0.7 + 0.3,
           color: null
         })
       }
@@ -74,9 +70,11 @@ export default function ImageLoader({
     setGridCells(cells)
   }, [dimensions.width, dimensions.height, gridSize, cellGap, blinkSpeed, fadeOutDuration])
 
-  // Sample color from a region of the canvas
-  const sampleColorFromRegion = (canvas, x, y, width, height) => {
-    const ctx = canvas.getContext('2d')
+  // ============================================================================
+  // COLOR SAMPLING
+  // ============================================================================
+  const sampleColorFromRegion = useCallback((canvas, x, y, width, height) => {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
     const imageData = ctx.getImageData(x, y, width, height)
     const data = imageData.data
 
@@ -90,93 +88,123 @@ export default function ImageLoader({
       count++
     }
 
-    return `rgb(${Math.round(r/count)}, ${Math.round(g/count)}, ${Math.round(b/count)})`
-  }
+    return `rgb(${Math.round(r / count)}, ${Math.round(g / count)}, ${Math.round(b / count)})`
+  }, [])
 
-  // Handle image load
-  const handleImageLoad = (e) => {
-    if (imageLoadedRef.current) return
-    imageLoadedRef.current = true
+  // ============================================================================
+  // IMAGE PROCESSING
+  // ============================================================================
+  const processImage = useCallback((img, currentGridCells) => {
+    if (processedRef.current || currentGridCells.length === 0) return
+    processedRef.current = true
 
-    const img = e.target
+    const doProcess = () => {
+      // Create off-screen canvas for color sampling
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
+      ctx.drawImage(img, 0, 0)
 
-    const processImage = () => {
-      // Set dimensions based on actual rendered image size
-      const width = img.offsetWidth
-      const height = img.offsetHeight
-      setDimensions({ width, height })
+      // Calculate scale factors
+      const scaleX = img.naturalWidth / dimensions.width
+      const scaleY = img.naturalHeight / dimensions.height
 
-      // Wait for grid to update with new dimensions
+      // Sample colors and update cells
+      const updatedCells = currentGridCells.map(cell => ({
+        ...cell,
+        color: sampleColorFromRegion(
+          canvas,
+          Math.floor(cell.x * scaleX),
+          Math.floor(cell.y * scaleY),
+          Math.floor(gridSize * scaleX),
+          Math.floor(gridSize * scaleY)
+        )
+      }))
+
+      setGridCells(updatedCells)
+      setIsLoading(false)
+      setIsTransitioning(true)
+
+      // Show image after cells fill the gaps
+      setTimeout(() => setShowImage(true), transitionDuration)
+
+      // After transition, start fade out
       setTimeout(() => {
-        // Create off-screen canvas for color sampling
-        const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0)
+        setIsTransitioning(false)
+        setIsFadingOut(true)
+      }, transitionDuration)
 
-        // Calculate scale factors
-        const scaleX = img.naturalWidth / width
-        const scaleY = img.naturalHeight / height
-
-        // Sample colors for each grid cell
-        setGridCells(prevCells => prevCells.map(cell => ({
-          ...cell,
-          color: sampleColorFromRegion(
-            canvas,
-            Math.floor(cell.x * scaleX),
-            Math.floor(cell.y * scaleY),
-            Math.floor(gridSize * scaleX),
-            Math.floor(gridSize * scaleY)
-          )
-        })))
-
-        setIsLoading(false)
-        setIsTransitioning(true)
-
-        // After transition, start fade out
-        setTimeout(() => {
-          setIsTransitioning(false)
-          setIsFadingOut(true)
-        }, transitionDuration)
-
-        onLoad()
-      }, 50)
+      onLoad()
     }
 
-    // Apply loading delay if specified, otherwise load immediately
+    // Calculate minimum loading time
     if (loadingDelay > 0) {
-      setTimeout(processImage, loadingDelay)
+      const elapsedTime = Date.now() - loadStartTimeRef.current
+      const remainingDelay = Math.max(0, loadingDelay - elapsedTime)
+      setTimeout(doProcess, remainingDelay)
     } else {
-      processImage()
+      doProcess()
     }
-  }
+  }, [dimensions, gridSize, transitionDuration, loadingDelay, sampleColorFromRegion, onLoad])
 
-  // Get animation style for each cell
-  const getAnimationStyle = (cell) => {
+  // ============================================================================
+  // IMAGE LOAD DETECTION
+  // ============================================================================
+  useEffect(() => {
+    const img = imageRef.current
+    if (!img) return
+
+    if (img.complete && img.naturalWidth > 0) {
+      processImage(img, gridCells)
+    } else {
+      const handleLoad = () => processImage(img, gridCells)
+      img.addEventListener('load', handleLoad)
+      return () => img.removeEventListener('load', handleLoad)
+    }
+  }, [gridCells, processImage])
+
+  // ============================================================================
+  // CELL STYLES
+  // ============================================================================
+  const getCellStyle = useCallback((cell) => {
+    const baseStyle = {
+      position: 'absolute',
+      left: cell.x,
+      top: cell.y,
+      willChange: 'opacity, background-color, width, height, left, top'
+    }
+
     if (isLoading) {
       return {
+        ...baseStyle,
         animation: `blink ${blinkSpeed}ms infinite`,
         animationDelay: `${cell.blinkDelay}ms`,
+        animationFillMode: 'backwards',
         backgroundColor: cellColor,
         width: gridSize,
-        height: gridSize
+        height: gridSize,
+        opacity: cell.initialOpacity
       }
     }
 
     if (isTransitioning) {
       return {
+        ...baseStyle,
         backgroundColor: cell.color,
-        transition: `background-color ${transitionDuration}ms ease, width ${transitionDuration}ms ease, height ${transitionDuration}ms ease, left ${transitionDuration}ms ease, top ${transitionDuration}ms ease`,
+        transition: `background-color ${transitionDuration}ms ease, width ${transitionDuration}ms ease, height ${transitionDuration}ms ease, left ${transitionDuration}ms ease, top ${transitionDuration}ms ease, opacity ${transitionDuration}ms ease`,
         width: gridSize + cellGap,
         height: gridSize + cellGap,
         left: cell.x - (cellGap / 2),
-        top: cell.y - (cellGap / 2)
+        top: cell.y - (cellGap / 2),
+        opacity: 1,
+        animation: 'none'
       }
     }
 
     if (isFadingOut) {
       return {
+        ...baseStyle,
         backgroundColor: cell.color,
         opacity: 0,
         transition: `opacity ${fadeOutDuration}ms ease`,
@@ -188,11 +216,14 @@ export default function ImageLoader({
       }
     }
 
-    return {}
-  }
+    return baseStyle
+  }, [isLoading, isTransitioning, isFadingOut, blinkSpeed, cellColor, gridSize, cellGap, transitionDuration, fadeOutDuration])
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div className={`relative ${className}`}>
       <style jsx>{`
         @keyframes blink {
           0%, 100% { opacity: 0.3; }
@@ -200,14 +231,12 @@ export default function ImageLoader({
         }
       `}</style>
 
-      {/* Container with fixed aspect ratio */}
       <div
         className="relative overflow-hidden mx-auto"
         style={{
           width: width || '100%',
           height: height || 'auto',
-          aspectRatio: `${dimensions.width} / ${dimensions.height}`,
-          backgroundColor: isLoading ? 'transparent' : 'transparent'
+          aspectRatio: `${dimensions.width} / ${dimensions.height}`
         }}
       >
         {/* Grid Overlay */}
@@ -217,19 +246,13 @@ export default function ImageLoader({
               <div
                 key={cell.id}
                 className={cellShape === 'circle' ? 'rounded-full' : 'rounded'}
-                style={{
-                  position: 'absolute',
-                  left: cell.x,
-                  top: cell.y,
-                  willChange: 'opacity, background-color, width, height, left, top',
-                  ...getAnimationStyle(cell)
-                }}
+                style={getCellStyle(cell)}
               />
             ))}
           </div>
         )}
 
-        {/* Actual Image */}
+        {/* Image */}
         <img
           ref={imageRef}
           src={src}
@@ -237,10 +260,9 @@ export default function ImageLoader({
           crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: isFadingOut ? 1 : 0,
+            opacity: showImage ? 1 : 0,
             transition: 'opacity 300ms ease'
           }}
-          onLoad={handleImageLoad}
         />
       </div>
     </div>
