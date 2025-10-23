@@ -181,8 +181,8 @@ export const canvasItems = [
     hoverRotation: -2,
   }),
 
-  createImageCard('img-loading', {
-    content: '/thumbnails/mosaic.png',
+  createVideoCard('img-loading', {
+    content: '/thumbnails/img-loading.mp4',
     title: 'Image Loading',
     position: { x: -289, y: 941 },
     size: { width: 240, height: 170 },
