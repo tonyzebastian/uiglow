@@ -15,7 +15,7 @@ export default function AppHeader({ title }) {
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
-                            <BreadcrumbLink href="https://www.tonyzeb.design/" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                            <BreadcrumbLink href="https://www.tonyzeb.design/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
                                 Tony
                             </BreadcrumbLink>
                         </BreadcrumbItem>
