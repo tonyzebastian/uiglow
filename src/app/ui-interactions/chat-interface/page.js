@@ -1,5 +1,6 @@
 import React from 'react';
 import ChatComponent from './ChatComponent';
+import CenteredPageLayout from "@/components/core/CenteredPageLayout";
 
 export const metadata = {
   title: "Chat Interface - UiGlow",
@@ -63,11 +64,11 @@ const ChatInterface = () => {
     // Chat participants
     leftPerson: {
       name: "Tony",
-      avatar: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758823069/10_qujlpy.jpg"
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2680&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     rightPerson: {
       name: "Brendon",
-      avatar: "https://res.cloudinary.com/dctgknnt7/image/upload/v1758731402/2_hme6yu.jpg"
+      avatar: "https://images.unsplash.com/photo-1529068755536-a5ade0dcb4e8?q=80&w=2681&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
 
     // Message sequence
@@ -119,7 +120,7 @@ const ChatInterface = () => {
         id: 4,
         sender: 'left',
         type: 'image',
-        content: 'https://res.cloudinary.com/dctgknnt7/image/upload/v1758636253/cld-sample.jpg',
+        content: 'https://images.unsplash.com/photo-1762515303947-cef3ea72386d?q=80&w=2753&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         loader: {
           enabled: false,
           delay: 10500,
@@ -140,7 +141,11 @@ const ChatInterface = () => {
     ]
   };
 
-  return <ChatComponent config={chatConfig} uiConfig={uiConfig} />;
+  return (
+    <CenteredPageLayout>
+      <ChatComponent config={chatConfig} uiConfig={uiConfig} />
+    </CenteredPageLayout>
+  );
 };
 
 export default ChatInterface;

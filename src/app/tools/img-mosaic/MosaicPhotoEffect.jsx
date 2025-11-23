@@ -3,13 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Download, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 
 export default function MosaicPhotoEffect({
   grainTextureUrl = '/tools/texture-pattern.jpg',
-  defaultImage = 'https://res.cloudinary.com/dctgknnt7/image/upload/v1760098276/mosaic_raw_qizmph.jpg'
+  defaultImage = '/thumbnails/mosaic_1.jpg'
 }) {
   // State
   const [image, setImage] = useState(defaultImage);

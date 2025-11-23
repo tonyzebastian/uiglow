@@ -18,7 +18,7 @@ export default function DrawingPage() {
   // Image Configuration
   const imageConfig = {
     urls: [
-      'https://res.cloudinary.com/dctgknnt7/image/upload/v1758636253/cld-sample.jpg',
+      'https://images.unsplash.com/photo-1762515303947-cef3ea72386d?q=80&w=2753&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     ],
     size: 600,                        // Max width/height (maintains aspect ratio)
     padding: 5,                       // White padding around images (0 to disable)

@@ -8,4 +8,5 @@ export const navItems = [
     { label: "Upvote",         href: "/ui-interactions/upvote" },
     { label: "Download Button",href: "/ui-interactions/btn-variations" },
     { label: "Image Dither",   href: "/ui-interactions/img-dither" },
+    { label: "Table of Contents",   href: "/ui-interactions/table-contents" },
   ];
