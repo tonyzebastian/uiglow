@@ -1,6 +1,5 @@
 'use client'
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { motion } from 'motion/react';
 
 export default function ImgStack({ images }) {
@@ -105,12 +104,10 @@ export default function ImgStack({ images }) {
                             transition: { duration: 0.1 }
                         }}
                     >
-                        <Image
+                        <img
                             src={card.src}
                             alt={`Card ${card.id + 1}`}
-                            fill
-                            className="object-cover rounded-xl pointer-events-none"
-                            sizes="(max-width: 768px) 100vw, 200px"
+                            className="absolute inset-0 w-full h-full object-cover rounded-xl pointer-events-none"
                             draggable={false}
                         />
                     </motion.div>

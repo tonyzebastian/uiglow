@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Image from 'next/image'
 import { motion, AnimatePresence } from 'motion/react'
 
 // ==========================================
@@ -477,14 +476,11 @@ const SphereImageGrid = ({
         variants={ANIMATION_CONFIG.stagger.item}
       >
         <div className="relative w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-white/20">
-          <Image
+          <img
             src={image.src}
             alt={image.alt}
-            fill
-            sizes={`${Math.round(imageSize)}px`}
-            className="object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
-            priority={index < 3}
           />
         </div>
       </motion.div>
@@ -506,13 +502,10 @@ const SphereImageGrid = ({
               {...ANIMATION_CONFIG.modal.content}
             >
               <div className="relative aspect-square">
-                <Image
+                <img
                   src={selectedImage.src}
                   alt={selectedImage.alt}
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                  priority
+                  className="w-full h-full object-cover"
                 />
                 <button
                   onClick={() => setSelectedImage(null)}

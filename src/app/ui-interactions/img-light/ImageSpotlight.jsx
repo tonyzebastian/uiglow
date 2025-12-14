@@ -1,6 +1,5 @@
 'use client'
 import { useState, useCallback, useEffect, useRef } from 'react';
-import Image from 'next/image';
 
 // Throttle utility function
 const throttle = (func, limit) => {
@@ -135,24 +134,19 @@ export default function ImageSpotlight({
         </div>
 
         {/* Blurred Base Image - Always visible */}
-        <Image
+        <img
           src={src}
           alt={alt}
-          fill
-          className="object-cover w-full h-full"
-          sizes={orientation === 'landscape' ? "(max-width: 768px) 100vw, 800px" : "(max-width: 768px) 100vw, 600px"}
+          className="absolute inset-0 w-full h-full object-cover"
           draggable={false}
-          priority
           style={{ filter: 'blur(5px)' }}
         />
 
         {/* Sharp Image - Only visible through spotlight */}
-        <Image
+        <img
           src={src}
           alt=""
-          fill
-          className="object-cover w-full h-full"
-          sizes={orientation === 'landscape' ? "(max-width: 768px) 100vw, 800px" : "(max-width: 768px) 100vw, 600px"}
+          className="absolute inset-0 w-full h-full object-cover"
           draggable={false}
           style={{
             maskImage: `radial-gradient(

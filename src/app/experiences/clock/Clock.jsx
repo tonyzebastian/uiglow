@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import styles from './Clock.module.css';
 
 export default function Clock({ size = 270, timeZoneOffset = 0 }) {
@@ -57,7 +56,7 @@ export default function Clock({ size = 270, timeZoneOffset = 0 }) {
     return (
       <div className="relative" style={{ width: size, height: size }} suppressHydrationWarning>
         {/* Clock face (seconds svg as background) */}
-        <Image
+        <img
           src="/clock/seconds.svg"
           alt="Clock face"
           width={size}
@@ -73,7 +72,7 @@ export default function Clock({ size = 270, timeZoneOffset = 0 }) {
         />
 
         {/* Hour hand */}
-        <Image
+        <img
           src="/clock/hour.svg"
           alt="Hour hand"
           width={hourHandWidth}
@@ -87,7 +86,7 @@ export default function Clock({ size = 270, timeZoneOffset = 0 }) {
         />
 
         {/* Minute hand */}
-        <Image
+        <img
           src="/clock/minute.svg"
           alt="Minute hand"
           width={minuteHandWidth}

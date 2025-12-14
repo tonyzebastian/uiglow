@@ -1,7 +1,6 @@
 import { Merriweather, Raleway } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Analytics } from "@vercel/analytics/react";
 import DockNavigation from "@/components/DockNavigation";
 
 const merriweather = Merriweather({
@@ -82,7 +81,6 @@ export default function RootLayout({ children }) {
           {children}
         </ErrorBoundary>
         <DockNavigation />
-        <Analytics />
       </body>
     </html>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, Suspense } from 'react';
-import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -30,12 +29,10 @@ function CardContent({ contentType, content, component, componentProps, title })
   if (contentType === 'image') {
     return (
       <div className="relative w-full h-full">
-        <Image
+        <img
           src={content}
           alt={title}
-          fill
-          className="object-cover rounded-lg"
-          sizes="280px"
+          className="w-full h-full object-cover rounded-lg"
         />
       </div>
     );

@@ -1,5 +1,4 @@
 'use client'
-import Image from 'next/image';
 import { motion } from "motion/react";
 
 export default function ImageReveal({ leftImage, middleImage, rightImage }) {
@@ -96,53 +95,47 @@ export default function ImageReveal({ leftImage, middleImage, rightImage }) {
             animate="animate"
         >
             {/* Left Image - Lowest z-index */}
-            <motion.div 
+            <motion.div
                 className="absolute w-48 h-48 origin-bottom-right overflow-hidden rounded-xl shadow-lg bg-white hidden md:block "
                 variants={leftImageVariants}
                 whileHover="hover"
                 animate="animate"
                 style={{ zIndex: 10 }}
             >
-                <Image
+                <img
                     src={leftImage}
                     alt="Left image"
-                    fill
-                    className="object-cover p-2 rounded-xl"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="w-full h-full object-cover p-2 rounded-xl"
                 />
             </motion.div>
-            
+
             {/* Middle Image - Middle z-index */}
-            <motion.div 
+            <motion.div
                 className="absolute w-48 h-48 origin-bottom-left overflow-hidden rounded-xl shadow-lg bg-white"
                 variants={middleImageVariants}
                 whileHover="hover"
                 animate="animate"
                 style={{ zIndex: 20 }}
             >
-                <Image
+                <img
                     src={middleImage}
                     alt="Middle image"
-                    fill
-                    className="object-cover p-2 rounded-2xl"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw "
+                    className="w-full h-full object-cover p-2 rounded-2xl"
                 />
             </motion.div>
-            
+
             {/* Right Image - Highest z-index */}
-            <motion.div 
+            <motion.div
                 className="absolute w-48 h-48 origin-bottom-right overflow-hidden rounded-xl shadow-lg bg-white hidden md:block "
                 variants={rightImageVariants}
                 whileHover="hover"
                 animate="animate"
                 style={{ zIndex: 30 }}
             >
-                <Image
+                <img
                     src={rightImage}
                     alt="Right image"
-                    fill
-                    className="object-cover p-2 rounded-2xl"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="w-full h-full object-cover p-2 rounded-2xl"
                 />
             </motion.div>
         </motion.div>
