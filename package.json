@@ -24,7 +24,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
     "motion": "^12.22.0",
-    "next": "15.1.2",
+    "next": "15.1.11",
     "progressive-blur": "^1.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
