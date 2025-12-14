@@ -2,14 +2,15 @@
 
 Modern Next.js showcase platform for UI components, animations, and interactive experiences.
 
-**Version**: 0.1.0 | **Framework**: Next.js 15.1.2 (App Router) | **Language**: JavaScript
+**Version**: 0.1.0 | **Framework**: Next.js 15.5.9 (App Router) | **Language**: JavaScript
+**Deployment**: Cloudflare Pages (Static Export) | **Build Output**: `out/`
 
 ---
 
 ## Tech Stack
 
 ### Core
-- **Next.js 15** + React 18
+- **Next.js 15.5.9** + React 18.3.1
 - **Tailwind CSS 3.4.1** - Utility-first styling
 - **Shadcn/ui** - Component library (Radix UI primitives)
 - **Motion 12.22.0** - Animation library
@@ -18,9 +19,67 @@ Modern Next.js showcase platform for UI components, animations, and interactive 
 - **Lucide React** - Primary icon library
 - **React Icons** - Secondary icons (FontAwesome, Ionicons, etc.)
 
+### Deployment & Hosting
+- **Cloudflare Pages** - Static hosting with global CDN
+- **Node.js 20** - Build environment (specified in `.nvmrc`)
+- **Static Export** - Pre-rendered HTML (`output: 'export'`)
+
 ### Tools
 - **Turbopack** - Fast bundler (dev mode)
 - **ESLint** - Code linting
+
+---
+
+## Deployment Architecture (Cloudflare Pages)
+
+### Build Configuration
+```javascript
+// next.config.mjs
+output: 'export'           // Static HTML export
+images: { unoptimized: true }  // Standard <img> tags (no optimization)
+```
+
+### Cloudflare Pages Settings
+- **Build command**: `npm run build`
+- **Build output directory**: `out`
+- **Node version**: 20 (from `.nvmrc`)
+- **Framework preset**: Next.js (Static HTML Export)
+
+### What Works on Cloudflare Pages ✅
+- ✅ Static site generation (SSG)
+- ✅ Client-side routing
+- ✅ Standard `<img>` tags (no Next.js Image optimization)
+- ✅ Dynamic imports with Suspense
+- ✅ Client-side state management
+- ✅ CSS/Tailwind styling
+- ✅ Public assets (images, videos, fonts)
+- ✅ Custom headers (`public/_headers`)
+- ✅ Redirects (`public/_redirects`)
+
+### What Doesn't Work on Cloudflare Pages ❌
+- ❌ Server-side rendering (SSR) - `getServerSideProps`
+- ❌ Incremental static regeneration (ISR) - `revalidate`
+- ❌ API routes (`/api/*`) - use Cloudflare Workers/Functions instead
+- ❌ Middleware (unless using Cloudflare Workers)
+- ❌ Next.js Image optimization (`next/image` with optimization)
+- ❌ Dynamic routes with fallback (`fallback: true`)
+- ❌ On-demand revalidation
+- ❌ Edge runtime features
+
+### Migration Changes from Vercel
+1. **Removed**: `next/image` → Replaced with standard `<img>` tags
+2. **Removed**: Vercel Analytics → Can use Cloudflare Web Analytics instead
+3. **Added**: `output: 'export'` in `next.config.mjs`
+4. **Added**: `images.unoptimized: true`
+5. **Added**: `.nvmrc` file (Node 20)
+
+### Performance Considerations
+- **No automatic image optimization** - Manually optimize images before deployment
+  - Convert to WebP/AVIF for better compression
+  - Use tools like ImageOptim, Squoosh, or Sharp
+  - Add `loading="lazy"` for off-screen images
+- **No CDN image resizing** - Serve appropriately sized images
+- **Static assets cached via Cloudflare CDN** - Excellent global performance
 
 ---
 
@@ -87,7 +146,7 @@ Interactive infinite canvas showcasing all projects:
 - **Error Handling**: Individual items wrapped in ErrorBoundary
 
 **Performance:**
-- Lazy loading for images (Next.js Image)
+- Standard `<img>` tags for images (Cloudflare Pages compatibility)
 - Suspense boundaries for dynamic components
 - 10000px canvas boundary
 
@@ -121,10 +180,11 @@ Interactive infinite canvas showcasing all projects:
 
 ### Performance Best Practices
 - **Debouncing**: Resize handlers (150ms)
-- **Lazy Loading**: Images via Next.js Image component
+- **Image Loading**: Standard `<img>` tags with `loading="lazy"` attribute
 - **Code Splitting**: Dynamic imports for heavy components
 - **Error Handling**: ErrorBoundary at root + critical components
 - **Hydration**: `suppressHydrationWarning` for time-based components
+- **Static Export**: All pages pre-rendered at build time for Cloudflare Pages
 
 ---
 
@@ -193,7 +253,7 @@ Shows user-friendly error UI with reload button (dev mode shows error details).
 - **canvasData.js**: Configuration with factory functions
 
 ### Content Types
-- `image` - Next.js Image component (lazy loading)
+- `image` - Standard `<img>` tags (Cloudflare Pages compatible)
 - `video` - Autoplay, muted, loop, playsInline
 - `component` - Dynamic import with Suspense fallback
 - `text` - Centered text
@@ -254,10 +314,15 @@ Add to `lib/utils.js` - current utilities:
 
 ```bash
 npm run dev    # Development with Turbopack
-npm run build  # Production build
-npm run start  # Production server
+npm run build  # Production static export (outputs to /out)
+npm run start  # Production server (for local testing only)
 npm run lint   # ESLint check
 ```
+
+**Note for Cloudflare Pages**:
+- Use `npm run build` to generate static export
+- Output directory: `out/` (configured in Cloudflare Pages)
+- Preview locally: `npx serve out`
 
 ---
 
@@ -265,8 +330,10 @@ npm run lint   # ESLint check
 
 ### Images
 - **Thumbnails**: GIF or PNG in `public/thumbnails/`
-- **Component**: Use Next.js Image for optimization
-- **Sizing**: Specify `sizes` prop for responsive images
+- **Implementation**: Standard `<img>` tags (Cloudflare Pages compatible)
+- **Optimization**: Manually optimize before deployment (WebP/AVIF recommended)
+- **Lazy Loading**: Add `loading="lazy"` for off-screen images
+- **Sizing**: Use CSS/Tailwind classes for responsive sizing
 
 ### Videos
 - Format: MP4
@@ -284,19 +351,23 @@ npm run lint   # ESLint check
 
 ✅ **Implemented:**
 - Debounced resize handlers
-- Next.js Image lazy loading
+- Standard `<img>` tags (Cloudflare Pages compatible)
 - Dynamic imports with Suspense
 - Error boundaries
 - SSR-safe code
 - Removed duplicate files
 - Consolidated components
 - Factory functions for DRY code
+- Static export for Cloudflare Pages
+- Node.js 20 build environment
 
 ⏳ **Future Optimizations:**
 - Bundle analyzer (track bundle size)
 - Intersection observer (canvas items)
-- Image optimization (WebP/AVIF)
+- Image optimization (convert to WebP/AVIF)
+- Add `loading="lazy"` to off-screen images
 - Additional utility functions
+- Cloudflare Web Analytics integration
 
 ---
 
@@ -333,3 +404,8 @@ npm run lint   # ESLint check
 - **Error boundaries** - wrap risky components
 - **SSR awareness** - always check `typeof window` before browser APIs
 - **Path alias**: `@/` = `src/`
+- **Cloudflare Pages deployment** - Static export only, no SSR/ISR/API routes
+- **Image handling** - Use standard `<img>` tags, NOT `next/image`
+- **Build command** - `npm run build` outputs to `out/` directory
+- **Next.js version** - 15.5.9 (latest stable 15.x)
+- **React version** - 18.3.1 (not React 19 yet)
