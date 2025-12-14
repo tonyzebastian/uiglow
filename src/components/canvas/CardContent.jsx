@@ -20,6 +20,7 @@ const componentMap = {
   ClockPreview: dynamic(() => import('@/components/previews/ClockPreview')),
   BreathingHero: dynamic(() => import('@/components/effects/BreathingHero')),
   CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
+  ParticleLogoReveal: dynamic(() => import('@/app/ui-interactions/particle-logo/page').then(mod => ({ default: mod.ParticleLogoReveal }))),
 };
 
 function CardContent({ contentType, content, component, componentProps, title }) {

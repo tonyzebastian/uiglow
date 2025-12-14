@@ -203,6 +203,17 @@ export const canvasItems = [
     hoverRotation: -2,
   }),
 
+  createComponentCard('particle-logo', 'ParticleLogoReveal', {
+    title: 'Particle Logo Reveal',
+    position: { x: 263, y: 750 },
+    size: { width: 240, height: 170 },
+    rotation: -3,
+    link: '/ui-interactions/particle-logo',
+    backgroundColor: '#ffffff',
+    openInNewTab: false,
+    hoverRotation: 2,
+  }),
+
   // ==================== GROUP 4: SVG ANIMATIONS (Bottom Right) ====================
   createGroupTitle('svg', 'Untitled', { x: 506, y: 632 }, 380),
   createArrow('svg', 'spec3-left', { x: 688, y: 712 }, 35, { width: 90, height: 60 }),
