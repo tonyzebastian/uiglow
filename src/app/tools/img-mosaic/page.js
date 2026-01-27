@@ -12,7 +12,7 @@ export const metadata = {
   'apple-mobile-web-app-title': 'Image Mosaic ✦ Tony',
   'apple-mobile-web-app-status-bar-style': 'black-translucent',
   alternates: {
-    canonical: 'https://play.tonyzeb.design',
+    canonical: 'https://play.tonyzeb.com',
   },
   twitter: {
     card: 'summary_large_image',
@@ -20,16 +20,16 @@ export const metadata = {
     creator: '@tonyzebastian',
     title: 'Image Mosaic ✦ Tony',
     description: 'Stunning photo mosaic effects with customizable grid patterns',
-    image: 'https://play.tonyzeb.design/mosaic_preview.jpg',
+    image: 'https://play.tonyzeb.com/mosaic_preview.jpg',
     imageAlt: 'Play ✦ Tony - UI Experiments & Interactions',
   },
   openGraph: {
     title: 'Image Mosaic ✦ Tony',
     description: 'Stunning photo mosaic effects with customizable grid patterns',
-    url: 'https://play.tonyzeb.design/',
+    url: 'https://play.tonyzeb.com/',
     siteName: 'Play ✦ Tony',
     images: [{
-      url: 'https://play.tonyzeb.design/mosaic_preview.jpg',
+      url: 'https://play.tonyzeb.com/mosaic_preview.jpg',
       alt: 'Play ✦ Tony - UI Experiments & Interactions',
       width: 1200,
       height: 630,

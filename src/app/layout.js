@@ -36,7 +36,7 @@ export const metadata = {
   'apple-mobile-web-app-title': 'Play ✦ Tony',
   'apple-mobile-web-app-status-bar-style': 'black-translucent',
   alternates: {
-    canonical: 'https://play.tonyzeb.design',
+    canonical: 'https://play.tonyzeb.com',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,16 +44,16 @@ export const metadata = {
     creator: '@tonyzebastian',
     title: 'Play ✦ Tony',
     description: 'A visual product designer | Love to code | always tinkering with a side project',
-    image: 'https://play.tonyzeb.design/preview.png',
+    image: 'https://play.tonyzeb.com/preview.png',
     imageAlt: 'Play ✦ Tony - UI Experiments & Interactions',
   },
   openGraph: {
     title: 'Play ✦ Tony',
     description: 'A visual product designer | Love to code | always tinkering with a side project',
-    url: 'https://play.tonyzeb.design/',
+    url: 'https://play.tonyzeb.com/',
     siteName: 'Play ✦ Tony',
     images: [{
-      url: 'https://play.tonyzeb.design/preview.png',
+      url: 'https://play.tonyzeb.com/preview.png',
       alt: 'Play ✦ Tony - UI Experiments & Interactions',
       width: 1200,
       height: 630,

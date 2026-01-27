@@ -17,7 +17,7 @@ export default function HomePage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <a
-                href="https://www.tonyzeb.design/"
+                href="https://www.tonyzeb.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 flex items-center justify-center bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors shadow-lg"

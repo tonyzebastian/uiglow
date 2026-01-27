@@ -14,12 +14,12 @@ export default function DockNavigation() {
   const navItems = useMemo(() => [
     {
       title: 'Home',
-      href: 'https://www.tonyzeb.design/',
+      href: 'https://www.tonyzeb.com/',
       icon: <img src="/nav/home.png" alt="Home" className='h-full w-full object-contain' />
     },
     {
       title: 'About',
-      href: 'https://www.tonyzeb.design/about',
+      href: 'https://www.tonyzeb.com/about',
       icon: <img src="/nav/about.png" alt="About" className='h-full w-full object-contain' />
     },
     {
