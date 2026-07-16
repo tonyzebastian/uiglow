@@ -36,7 +36,7 @@ export default function ContentModal({ isOpen, onClose, item }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm sm:p-8"
           onClick={handleClose}
         >
           <motion.div
@@ -44,7 +44,7 @@ export default function ContentModal({ isOpen, onClose, item }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="relative w-[85vw] h-[90vh] flex items-center justify-center"
+            className="relative flex h-[82vh] w-full max-w-6xl items-center justify-center sm:h-[88vh] sm:w-[85vw]"
           >
             {/* Modal content */}
             <div
@@ -65,7 +65,7 @@ export default function ContentModal({ isOpen, onClose, item }) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2, delay: 0.1 }}
-              className="absolute -right-14 top-0 flex flex-col gap-3"
+              className="absolute right-0 top-3 flex -translate-y-full flex-row gap-2 sm:-right-14 sm:top-0 sm:translate-y-0 sm:flex-col sm:gap-3"
             >
               <button
                 onClick={handleClose}

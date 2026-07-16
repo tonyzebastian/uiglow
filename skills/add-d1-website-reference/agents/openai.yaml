@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add D1 Website Reference"
+  short_description: "Add curated sites to the D1 link library"
+  default_prompt: "Use $add-d1-website-reference to save this website in the UiGlow reference library."
