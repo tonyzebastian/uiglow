@@ -59,8 +59,12 @@ export default function LinkLibrary() {
 }
 
 function BookmarkRow({ bookmark }) {
+  const previewSrc = bookmark.image_url || "/library-fallback.png";
+
   return <article className={styles.row}>
-    <a href={bookmark.url} target="_blank" rel="noreferrer"><h2>{bookmark.name}</h2></a>
-    {bookmark.description && <p>{bookmark.description}</p>}
+    <a className={styles.rowLink} href={bookmark.url} target="_blank" rel="noreferrer" aria-label={`Open ${bookmark.name}`}>
+      <div><h2>{bookmark.name}</h2>{bookmark.description && <p>{bookmark.description}</p>}</div>
+      <img className={styles.preview} src={previewSrc} alt="" onError={(event) => { event.currentTarget.src = "/library-fallback.png"; }} />
+    </a>
   </article>;
 }

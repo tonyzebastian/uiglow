@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
-import CardContent from '@/components/canvas/CardContent';
+import GalleryContent from './GalleryContent';
 
 export default function GalleryCard({ card, onOpen }) {
   const previewStyle = {
@@ -34,7 +34,7 @@ export default function GalleryCard({ card, onOpen }) {
             href={card.link}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 flex items-center justify-center gap-1.5 rounded-b-[8px] border-t border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2"
+            className="mt-1 flex items-center justify-center gap-1.5 rounded-[8px] bg-slate-50/80 px-3 py-2 text-sm font-medium text-slate-600 transition-[background-color,color,transform] duration-150 hover:-translate-y-px hover:bg-slate-100 hover:text-slate-950 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2"
             aria-label={`View ${card.title} in a new tab`}
           >
             View Prototype <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -49,7 +49,7 @@ function Preview({ card }) {
   return (
     <>
           <div className="h-full w-full pointer-events-none">
-            <CardContent
+            <GalleryContent
               contentType={card.contentType}
               content={card.content}
               component={card.component}
