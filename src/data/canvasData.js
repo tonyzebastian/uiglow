@@ -133,6 +133,17 @@ export const canvasItems = [
     hoverRotation: -3,
   }),
 
+  createImageCard('water-reflection', {
+    content: '/tools/Water.png',
+    title: 'Water Reflection',
+    position: { x: 1271, y: 268 },
+    size: { width: 210, height: 260 },
+    rotation: -3,
+    link: '/tools/water-reflection',
+    openInNewTab: false,
+    hoverRotation: 2,
+  }),
+
 
   // ==================== GROUP 3: INTERACTIONS (Bottom Left) ====================
   createGroupTitle('interactions', 'React Components', { x: -1, y: 547 }, 320),
