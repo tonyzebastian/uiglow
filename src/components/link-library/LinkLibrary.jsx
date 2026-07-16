@@ -60,7 +60,9 @@ export default function LinkLibrary() {
 
 function BookmarkRow({ bookmark }) {
   return <article className={styles.row}>
-    <a href={bookmark.url} target="_blank" rel="noreferrer"><h2>{bookmark.name}</h2></a>
-    {bookmark.description && <p>{bookmark.description}</p>}
+    <a className={styles.rowLink} href={bookmark.url} target="_blank" rel="noreferrer" aria-label={`Open ${bookmark.name}`}>
+      <div><h2>{bookmark.name}</h2>{bookmark.description && <p>{bookmark.description}</p>}</div>
+      {bookmark.image_url && <img className={styles.preview} src={bookmark.image_url} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+    </a>
   </article>;
 }

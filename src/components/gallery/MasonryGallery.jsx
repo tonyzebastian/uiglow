@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import GalleryCard from './GalleryCard';
-import ContentModal from '@/components/canvas/ContentModal';
+import GalleryModal from './GalleryModal';
 
 const getColumnCount = () => {
   if (window.innerWidth >= 1024) return 3;
@@ -53,7 +53,7 @@ export default function MasonryGallery({ cards }) {
         </div>
       </section>
 
-      <ContentModal isOpen={Boolean(modalCard)} onClose={() => setModalCard(null)} item={modalCard} />
+      <GalleryModal isOpen={Boolean(modalCard)} onClose={() => setModalCard(null)} item={modalCard} />
     </>
   );
 }
