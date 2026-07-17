@@ -13,6 +13,7 @@ const ComponentSkeleton = () => (
 const componentMap = {
   Clock: dynamic(() => import('@/app/experiences/clock/Clock')),
   CoinFlip: dynamic(() => import('@/app/svg-animations/coinflip/CoinFlip')),
+  VisionScene: dynamic(() => import('@/components/vision-scene/VisionScene')),
 };
 
 function GalleryContent({ contentType, content, component, componentProps, title }) {

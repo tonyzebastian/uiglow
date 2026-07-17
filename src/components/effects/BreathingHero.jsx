@@ -10,7 +10,7 @@ export default function BreathingHero() {
           <div className='flex flex-col items-center'>
             <h1 className='font-heading text-2xl text-orange-950 font-bold dark:text-orange-200 tracking-wider'>Motion, Pixels, & Play</h1>
             <p className="mt-2 text-base font-light leading-relaxed tracking-wider font-sans dark:text-slate-300 text-slate-900 text-center">
-            A playground for exploring ideas across motion design, interactive experiences, React components, and curious little animations. Built with love and a sprinkle of code magic.
+            A playground for exploring ideas across motion design, interactive experiences, UI explorations, and curious little animations. Built with love and a sprinkle of code magic.
             </p>
           </div>
         </div>

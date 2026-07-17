@@ -101,6 +101,12 @@ export const galleryCards = [
     size: { width: 240, height: 170 },
     link: '/ui-interactions/chat-interface',
   }),
+  componentCard('vision-scene', 'VisionScene', {
+    title: 'Vision Scene',
+    size: { width: 240, height: 170 },
+    link: '/ui-interactions/vision-scene',
+    backgroundColor: '#faf5ff',
+  }),
 
   componentCard('coinflip', 'CoinFlip', {
     title: 'Coin Flip',
