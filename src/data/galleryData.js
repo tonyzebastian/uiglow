@@ -107,6 +107,12 @@ export const galleryCards = [
     link: '/ui-interactions/vision-scene',
     backgroundColor: '#faf5ff',
   }),
+  componentCard('vision-reveal', 'VisionReveal', {
+    title: 'Vision Reveal',
+    size: { width: 240, height: 170 },
+    link: '/ui-interactions/vision-reveal',
+    backgroundColor: '#ece8e1',
+  }),
 
   componentCard('coinflip', 'CoinFlip', {
     title: 'Coin Flip',
