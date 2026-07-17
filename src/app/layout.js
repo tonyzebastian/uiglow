@@ -72,6 +72,19 @@ export default function RootLayout({ children }) {
             __html: `
               // Ensure light mode is set immediately (before React hydration)
               document.documentElement.classList.remove('dark');
+
+              // A pathname beginning with // is parsed by Next's client router as
+              // a protocol-relative URL (for example, //vault/links becomes
+              // https://vault/links). Normalize accidental duplicate slashes
+              // before hydration so navigation remains on this origin.
+              if (window.location.pathname.startsWith('//')) {
+                const normalizedPathname = window.location.pathname.replace(/^\\/+/, '/');
+                window.history.replaceState(
+                  window.history.state,
+                  '',
+                  normalizedPathname + window.location.search + window.location.hash
+                );
+              }
             `,
           }}
         />

@@ -8,7 +8,7 @@ import { navItems } from "./navigation-config"
 export default function UIExplorationsLayout({ children }) {
   const pathname = usePathname()
   const currentItem = navItems.find(item => item.href === pathname)
-  const title = currentItem?.label || 'UI Interactions'
+  const title = currentItem?.label || 'UI Explorations'
 
   return (
     <div className="flex flex-col h-screen">

@@ -1,4 +1,5 @@
 export const navItems = [
+    { label: "Vision Scene",  href: "/ui-interactions/vision-scene" },
     { label: "Image Stack",    href: "/ui-interactions/img-stack" },
     { label: "Image Tiles",    href: "/ui-interactions/img-tiles" },
     { label: "Image Light",    href: "/ui-interactions/img-light" },
