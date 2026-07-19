@@ -128,8 +128,12 @@ const fragmentShader = `
     // original black drawing left to retain their handmade structure. This
     // keeps the panels softer than the window's overall silhouette.
     float softenedPanelOpening = mix(blurredOpening, openingCore, .10);
-    float panelBlock = (1.0 - softenedPanelOpening) * softSunlightMask;
-    sunlightMask *= 1.0 - panelBlock * .61;
+    // Only treat black as a panel bar well inside the lit opening. Outside the
+    // window it is simply the dark mask background, so it must not crush the
+    // long, gradual falloff of the emitted light.
+    float interiorLight = smoothstep(.52, .84, softSunlightMask);
+    float panelBlock = (1.0 - softenedPanelOpening) * interiorLight;
+    sunlightMask *= 1.0 - panelBlock * .28;
     // Broad, imperfect density changes keep the light from feeling like one
     // flat white fill. They move slowly enough to suggest filtered daylight.
     float lightMottle = softNoise(paintedUv * vec2(2.35, 3.1) + vec2(drift * .36, 12.0)) - .5;
@@ -188,7 +192,8 @@ const fragmentShader = `
     float speckle = hash(floor(v_uv * u_resolution * .72) + floor(u_time * 8.0)) - .5;
     // The page itself supplies the wall colour. Keep the final texture inside
     // the light projection so the canvas has no visible rectangular backdrop.
-    float projectionPresence = smoothstep(.015, .42, sunlightMask);
+    float projectionPresence = smoothstep(.018, .65, sunlightMask)
+      * pow(clamp(sunlightMask, 0.0, 1.0), .45);
     color += (fibre * .036 + speckle * .012) * projectionPresence;
 
     // A barely-warm, uneven wash makes the flat blue feel printed rather than screen-perfect.
@@ -196,8 +201,87 @@ const fragmentShader = `
     color = mix(color, color * vec3(1.025, .995, .95), (wash * .11 + .055) * projectionPresence);
     // Let the page-level wall texture show through wherever there is no
     // projected light. The canvas only contributes the light and its haze.
-    float canvasAlpha = clamp(max(projectionPresence, lightPath * .38), 0.0, 1.0);
+    float canvasAlpha = projectionPresence;
     gl_FragColor = vec4(color, canvasAlpha);
+  }
+`;
+
+// A deliberately small four-sector Kuwahara pass. It smooths fine digital
+// detail while selecting the locally calmest direction, so the drawing's
+// edges remain readable instead of turning into a conventional blur.
+const kuwaharaFragmentShader = `
+  precision highp float;
+
+  uniform sampler2D u_scene;
+  uniform sampler2D u_tree_mask;
+  uniform vec2 u_resolution;
+  varying vec2 v_uv;
+
+  float hash(vec2 point) {
+    return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+
+  void sampleSector(vec2 start, out vec3 averageColor, out float variance) {
+    vec2 pixel = 1.0 / u_resolution;
+    vec3 colorSum = vec3(0.0);
+    vec3 squaredColorSum = vec3(0.0);
+    float weightSum = 0.0;
+
+    for (int y = 0; y < 5; y++) {
+      for (int x = 0; x < 5; x++) {
+        vec2 offset = start + vec2(float(x), float(y));
+        vec4 sampleColor = texture2D(u_scene, clamp(v_uv + offset * pixel, 0.0, 1.0));
+        float weight = max(sampleColor.a, .001);
+        colorSum += sampleColor.rgb * weight;
+        squaredColorSum += sampleColor.rgb * sampleColor.rgb * weight;
+        weightSum += weight;
+      }
+    }
+
+    averageColor = colorSum / weightSum;
+    vec3 varianceColor = max(squaredColorSum / weightSum - averageColor * averageColor, 0.0);
+    variance = dot(varianceColor, vec3(.299, .587, .114));
+  }
+
+  void main() {
+    vec4 original = texture2D(u_scene, v_uv);
+
+    if (original.a < .001) {
+      gl_FragColor = vec4(0.0);
+      return;
+    }
+
+    vec3 finalColor;
+    float minimumVariance;
+    sampleSector(vec2(-4.0, -4.0), finalColor, minimumVariance);
+
+    vec3 sectorColor;
+    float sectorVariance;
+    sampleSector(vec2(0.0, -4.0), sectorColor, sectorVariance);
+    if (sectorVariance < minimumVariance) {
+      finalColor = sectorColor;
+      minimumVariance = sectorVariance;
+    }
+
+    sampleSector(vec2(-4.0, 0.0), sectorColor, sectorVariance);
+    if (sectorVariance < minimumVariance) {
+      finalColor = sectorColor;
+      minimumVariance = sectorVariance;
+    }
+
+    sampleSector(vec2(0.0, 0.0), sectorColor, sectorVariance);
+    if (sectorVariance < minimumVariance) {
+      finalColor = sectorColor;
+    }
+
+    // Keep the painterly pass restrained. The original drawing remains the
+    // dominant image, while a tiny post-grain restores material after smoothing.
+    float treePresence = texture2D(u_tree_mask, v_uv).a;
+    float painterlyStrength = mix(.42, .64, smoothstep(.04, .6, treePresence));
+    vec3 color = mix(original.rgb, finalColor, original.a * painterlyStrength);
+    float postGrain = hash(floor(v_uv * u_resolution * 1.1)) - .5;
+    color += postGrain * .009 * original.a;
+    gl_FragColor = vec4(color, original.a);
   }
 `;
 
@@ -231,6 +315,9 @@ export default function WebGLBackground() {
     let animationFrame;
     let resizeObserver;
     let program;
+    let kuwaharaProgram;
+    let sceneFramebuffer;
+    let sceneTexture;
     let backgroundTexture;
     let sunlightTexture;
     let sunlightCoreTexture;
@@ -262,6 +349,19 @@ export default function WebGLBackground() {
         throw new Error(gl.getProgramInfoLog(program) || "Unable to link WebGL program.");
       }
 
+      const kuwaharaVertex = createShader(gl, gl.VERTEX_SHADER, vertexShader);
+      const kuwaharaFragment = createShader(gl, gl.FRAGMENT_SHADER, kuwaharaFragmentShader);
+      kuwaharaProgram = gl.createProgram();
+      gl.attachShader(kuwaharaProgram, kuwaharaVertex);
+      gl.attachShader(kuwaharaProgram, kuwaharaFragment);
+      gl.linkProgram(kuwaharaProgram);
+      gl.deleteShader(kuwaharaVertex);
+      gl.deleteShader(kuwaharaFragment);
+
+      if (!gl.getProgramParameter(kuwaharaProgram, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(kuwaharaProgram) || "Unable to link Kuwahara program.");
+      }
+
       const vertices = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
       gl.bufferData(
@@ -274,6 +374,21 @@ export default function WebGLBackground() {
       const position = gl.getAttribLocation(program, "a_position");
       gl.enableVertexAttribArray(position);
       gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+      const kuwaharaPosition = gl.getAttribLocation(kuwaharaProgram, "a_position");
+      const bindQuad = (attribute) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+        gl.enableVertexAttribArray(attribute);
+        gl.vertexAttribPointer(attribute, 2, gl.FLOAT, false, 0, 0);
+      };
+
+      sceneTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      sceneFramebuffer = gl.createFramebuffer();
 
       const setupTexture = (color) => {
         const nextTexture = gl.createTexture();
@@ -324,12 +439,18 @@ export default function WebGLBackground() {
       const leavesFrontLocation = gl.getUniformLocation(program, "u_leaves_front");
       const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
       const timeLocation = gl.getUniformLocation(program, "u_time");
+      const kuwaharaSceneLocation = gl.getUniformLocation(kuwaharaProgram, "u_scene");
+      const kuwaharaTreeMaskLocation = gl.getUniformLocation(kuwaharaProgram, "u_tree_mask");
+      const kuwaharaResolutionLocation = gl.getUniformLocation(kuwaharaProgram, "u_resolution");
       gl.uniform1i(textureLocation, 0);
       gl.uniform1i(sunlightLocation, 1);
       gl.uniform1i(sunlightCoreLocation, 5);
       gl.uniform1i(treeLocation, 2);
       gl.uniform1i(leavesBackLocation, 4);
       gl.uniform1i(leavesFrontLocation, 6);
+      gl.useProgram(kuwaharaProgram);
+      gl.uniform1i(kuwaharaSceneLocation, 7);
+      gl.uniform1i(kuwaharaTreeMaskLocation, 2);
 
       const loadTexture = (src, targetTexture) => {
         const image = new Image();
@@ -375,7 +496,7 @@ export default function WebGLBackground() {
         sunlightContext.save();
         // A wide opening blur gives the projected light a gentler, more
         // atmospheric falloff at its outside edge.
-        sunlightContext.filter = "blur(40px)";
+        sunlightContext.filter = "blur(56px)";
         sunlightContext.globalAlpha = .96;
         sunlightContext.drawImage(sunlightImage, 0, 0, sunlightCanvas.width, sunlightCanvas.height);
         sunlightContext.restore();
@@ -464,6 +585,11 @@ export default function WebGLBackground() {
         if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
           canvas.width = nextWidth;
           canvas.height = nextHeight;
+          gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, nextWidth, nextHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sceneTexture, 0);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
           gl.viewport(0, 0, nextWidth, nextHeight);
         }
       };
@@ -476,7 +602,10 @@ export default function WebGLBackground() {
       const render = (now) => {
         resize();
         paintLeaves(now);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.useProgram(program);
+        bindQuad(position);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
         gl.activeTexture(gl.TEXTURE1);
@@ -489,6 +618,17 @@ export default function WebGLBackground() {
         gl.bindTexture(gl.TEXTURE_2D, leavesFrontTexture);
         gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
         gl.uniform1f(timeLocation, (now - start) / 1000);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.useProgram(kuwaharaProgram);
+        bindQuad(kuwaharaPosition);
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, treeTexture);
+        gl.uniform2f(kuwaharaResolutionLocation, canvas.width, canvas.height);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         animationFrame = requestAnimationFrame(render);
       };
@@ -507,7 +647,10 @@ export default function WebGLBackground() {
       if (treeTexture) gl.deleteTexture(treeTexture);
       if (leavesBackTexture) gl.deleteTexture(leavesBackTexture);
       if (leavesFrontTexture) gl.deleteTexture(leavesFrontTexture);
+      if (sceneTexture) gl.deleteTexture(sceneTexture);
+      if (sceneFramebuffer) gl.deleteFramebuffer(sceneFramebuffer);
       if (program) gl.deleteProgram(program);
+      if (kuwaharaProgram) gl.deleteProgram(kuwaharaProgram);
     };
   }, []);
 

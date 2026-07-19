@@ -64,9 +64,12 @@ The shader is the live image-processing layer. It handles the light blend, the p
 
 After the full composition is assembled, a final whole-image treatment is applied:
 
+- a restrained four-sector Kuwahara pass, which smooths tiny digital detail while preserving the tree and panel edges;
 - fine grain and speckle;
 - subtle warm/cool variation;
 - a soft printed-paper or painted-wall wash.
+
+The Kuwahara pass uses a 4px kernel and is mixed back with the original scene at 42%. Where the tree mask is present, the mix increases to 64%, giving the trunk and branches a stronger painterly treatment. It only processes the light projection, not the full wall. Fine grain is added after that pass, so the painterly smoothing does not erase the material texture.
 
 This is real-time post-production in the browser. There is no separate video, After Effects render, or permanently altered PNG. The result can be tuned in `WebGLBackground.jsx` and will respond immediately in the live scene.
 
