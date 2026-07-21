@@ -17,4 +17,22 @@ Use the Cloudflare MCP for every live D1 read and write. Always use a direct D1 
 6. Store the canonical HTTPS URL, hostname, a short title, and a compact note in the user's voice. Use lowercase kebab-case tag names and readable labels.
 7. Verify the saved bookmark, its tags, and `image_url` with a final direct D1 `SELECT` query. Report the title, URL, tags, and whether an OG image was saved.
 
+## Personal-site reference lens
+
+For personal sites, keep the editorial note to one crisp sentence that identifies the structural or interaction idea worth reusing—avoid biography, feature inventories, and marketing language. Default to `personal-site`, `portfolio`, and `minimal`; add `interaction-design` only when the site meaningfully uses prototypes, micro-interactions, or experimental controls.
+
+Examples of the desired level of specificity:
+
+- [Alex Widua](https://alexwidua.com/): restrained experiment index; dated groups and short blurbs let the work lead.
+- [Marijana Pavlinić](https://marijanapav.com/): editorial portfolio with playful micro-tools and no clutter.
+- [Abstract Systems](https://www.abstract.systems/): text-led, system-minded portfolio with confident hierarchy and almost no decoration.
+- [Gunnar Gray](https://www.gunnargray.com/): intentionally sparse identity, contact, and archive presentation.
+
+## Tool reference lens
+
+For tools, name the practical job first, then the specific interaction or discovery value. Use `developer-tool` for workflows that support building or debugging; pair it with focused tags such as `animation`, `debugging`, `skills`, or `directory`.
+
+- [Dialkit Photo Stack](https://joshpuckett.me/dialkit/photostack): photo-stack interaction reference for debugging layered animation, transforms, and gesture state.
+- [Skills.sh](https://www.skills.sh/): searchable directory and leaderboard for finding installable agent skills.
+
 Use direct Cloudflare MCP D1 queries as the only persistence mechanism. Do not create or update repository migrations for website references unless the user explicitly asks for a database bootstrap file.
