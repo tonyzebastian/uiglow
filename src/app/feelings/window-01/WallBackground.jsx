@@ -17,7 +17,9 @@ const fragmentShader = `
   precision highp float;
 
   uniform vec2 u_resolution;
+  uniform vec2 u_css_resolution;
   uniform float u_time;
+  uniform sampler2D u_wall_texture;
   varying vec2 v_uv;
 
   float hash(vec2 point) {
@@ -49,23 +51,120 @@ const fragmentShader = `
     return value;
   }
 
+  // Mirrored tiling makes the left/right and top/bottom edge pixels meet their
+  // own reflection, preventing a visible tile seam in a non-seamless photo.
+  float mirroredRepeat(float coordinate) {
+    float tile = floor(coordinate);
+    float local = fract(coordinate);
+    return mix(local, 1.0 - local, mod(tile, 2.0));
+  }
+
   void main() {
     vec2 aspectUv = v_uv;
     aspectUv.x *= u_resolution.x / u_resolution.y;
     float slowTime = u_time * .012;
 
-    // Broad, imperfect pigment variation beneath the wall surface.
-    float cloud = fbm(aspectUv * 2.15 + vec2(slowTime, 3.0)) - .5;
-    float broad = fbm(aspectUv * .78 + vec2(7.0, slowTime * .4)) - .5;
-    float verticalLight = smoothstep(1.15, -.15, v_uv.y);
-    vec3 wall = mix(vec3(.22, .39, .57), vec3(.34, .56, .73), verticalLight);
-    wall += vec3(.028, .036, .042) * cloud + vec3(.015, .011, -.004) * broad;
+    // A painted wall has several *different scales* of irregularity. The
+    // broad layer is the uneven coat of paint; the warped mid layer suggests
+    // plaster beneath it; only then do the tiny pores make it feel tactile.
+    // Keeping their contrast low avoids the familiar "digital noise" look.
+    float cloud = fbm(aspectUv * .82 + vec2(4.0, slowTime * .35)) - .5;
+    vec2 plasterWarp = vec2(
+      fbm(aspectUv * 1.45 + vec2(8.0, 1.0)),
+      fbm(aspectUv * 1.45 + vec2(2.0, 9.0))
+    ) - .5;
+    float plaster = fbm(aspectUv * 3.15 + plasterWarp * .52 + vec2(slowTime, 2.0)) - .5;
+    float mottling = fbm(aspectUv * 7.4 + plasterWarp * .25 + 6.0) - .5;
+    // Palette sampled directly from the supplied Figma blocks. The reference
+    // is restrained: off-white, a single blue-grey, and mineral shadows—not
+    // saturated blue/yellow or a made-up "mood" palette.
+    vec3 deepShadow = vec3(.318, .322, .298);  // #51524C
+    vec3 offWhite = vec3(.898, .898, .898);    // #E5E5E5
+    vec3 blueGrey = vec3(.412, .447, .475);    // #697279
+    vec3 midTone = vec3(.427, .427, .427);     // #6D6D6D
+    vec3 mineralLight = vec3(.482, .490, .447); // #7B7D72
+    vec3 mineralShade = vec3(.471, .482, .455); // #787B74
 
-    // Fine plaster/paper grain. It is subtle enough to read as material,
-    // rather than as a visible digital noise filter.
-    float fibres = fbm(v_uv * vec2(330.0, 470.0) + vec2(2.0, slowTime * 3.0)) - .5;
+    // The upper-left is chalky off-white with changes in brightness only.
+    // In the lower wall, the blue-grey and off-white reveal one another in
+    // broad, irregular patches rather than forming a clean vertical gradient.
+    float topLight = smoothstep(.20, 1.02, v_uv.y);
+    float lowerOffWhite = clamp(.40 + cloud * .42 + plaster * .20, .10, .82);
+    vec3 lowerWall = mix(blueGrey, offWhite, lowerOffWhite);
+    vec3 upperWall = offWhite * (1.0 + cloud * .085 + plaster * .032);
+    vec3 wall = mix(lowerWall, upperWall, topLight);
+    float mineralMottle = smoothstep(.57, .82, mottling + .5);
+    wall = mix(wall, midTone, mineralMottle * (1.0 - topLight) * .055);
+
+    // The room is never lit by one perfectly even source. These broad,
+    // low-contrast pools are ambient bounce from different directions: a
+    // warmer reflection from the right, a quieter cool-grey lift to the left,
+    // and a very soft low reflection. They have no visible boundary.
+    vec2 lightUv = vec2(v_uv.x * u_resolution.x / u_resolution.y, v_uv.y);
+    float rightBounce = exp(-dot(lightUv - vec2(1.03, .30), lightUv - vec2(1.03, .30)) * 1.85);
+    float leftBounce = exp(-dot(lightUv - vec2(.14, .57), lightUv - vec2(.14, .57)) * 2.7);
+    float lowBounce = exp(-dot(lightUv - vec2(.76, 1.08), lightUv - vec2(.76, 1.08)) * 2.25);
+    float topLeftLift = exp(-dot(lightUv - vec2(.19, .91), lightUv - vec2(.19, .91)) * 3.4);
+    wall = mix(wall, offWhite, rightBounce * .075);
+    wall = mix(wall, mineralLight, leftBounce * .055);
+    wall = mix(wall, offWhite, lowBounce * .045);
+    wall = mix(wall, offWhite, topLeftLift * .19);
+
+    // A very broad diagonal occlusion gives the room a real directional
+    // lighting condition. It starts low on the left and dissolves as it rises
+    // toward the right—more like furniture or a neighbouring wall blocking
+    // ambient daylight than a drawn stripe.
+    float diagonalCentre = .035 + lightUv.x * .55;
+    float diagonalDistance = abs(lightUv.y - diagonalCentre);
+    // A wider falloff means it accumulates like ambient occlusion, rather
+    // than ever reading as a distinct diagonal stripe.
+    float diagonalShadow = 1.0 - smoothstep(.04, .54, diagonalDistance);
+    float diagonalBreakup = .76 + (fbm(lightUv * 3.0 + 12.0) - .5) * .24;
+    wall = mix(wall, mineralShade, diagonalShadow * diagonalBreakup * .20);
+
+    // The lower-right corner receives less of the room's bounced daylight.
+    // It is deliberately broad so it feels like a corner falling away, not a
+    // painted vignette.
+    float lowerRightOcclusion = exp(-dot(lightUv - vec2(1.58, .08), lightUv - vec2(1.58, .08)) * 4.4);
+    wall = mix(wall, deepShadow, lowerRightOcclusion * .25);
+
+    // Fine pores plus a very soft vertical application grain. These are
+    // anchored to the wall, never animated as screen grain.
+    float pores = fbm(v_uv * vec2(470.0, 620.0) + 2.0) - .5;
+    float fibres = fbm(v_uv * vec2(105.0, 720.0) + vec2(2.0, 5.0)) - .5;
     float speckle = hash(floor(v_uv * u_resolution * 1.15)) - .5;
-    wall += fibres * .026 + speckle * .014;
+    float poreDots = smoothstep(.84, .985, hash(floor(v_uv * u_resolution * .58) + 17.0));
+    wall += pores * .022 + fibres * .012 + speckle * .010;
+    wall -= poreDots * .022;
+
+    // Repeat the photograph at its native 640px scale. It is mirrored at
+    // each join so its non-seamless edges cannot form a grid on the wall.
+    vec2 textureUv = vec2(
+      mirroredRepeat(v_uv.x * u_css_resolution.x / 640.0),
+      mirroredRepeat(v_uv.y * u_css_resolution.y / 640.0)
+    );
+    vec3 photographedPlaster = texture2D(u_wall_texture, textureUv).rgb;
+    float plasterValue = dot(photographedPlaster, vec3(.2126, .7152, .0722));
+    float plasterTone = plasterValue - .58;
+    vec2 texturePixel = vec2(.0022, .0022);
+    float surroundingPlaster = (
+      dot(texture2D(u_wall_texture, textureUv + vec2(texturePixel.x, 0.0)).rgb, vec3(.2126, .7152, .0722)) +
+      dot(texture2D(u_wall_texture, textureUv - vec2(texturePixel.x, 0.0)).rgb, vec3(.2126, .7152, .0722)) +
+      dot(texture2D(u_wall_texture, textureUv + vec2(0.0, texturePixel.y)).rgb, vec3(.2126, .7152, .0722)) +
+      dot(texture2D(u_wall_texture, textureUv - vec2(0.0, texturePixel.y)).rgb, vec3(.2126, .7152, .0722))
+    ) * .25;
+    float plasterRelief = plasterValue - surroundingPlaster;
+    wall *= 1.0 + plasterTone * .23 + plasterRelief * .56;
+
+    // Final exposure pass: it changes only brightness, never the palette.
+    // The lower part of the room falls away from the light, while the bright
+    // upper wall is gently held back so it does not become a white screen.
+    float bottomDarkening = 1.0 - smoothstep(.02, .58, v_uv.y);
+    float topToning = smoothstep(.28, .92, v_uv.y);
+    wall *= 1.0 - bottomDarkening * .17 - topToning * .26;
+
+    // Final neutral exposure filter, applied after every other wall treatment.
+    wall *= .85;
 
     gl_FragColor = vec4(wall, 1.0);
   }
@@ -97,6 +196,7 @@ export default function WallBackground() {
     let animationFrame;
     let resizeObserver;
     let program;
+    let wallTexture;
 
     try {
       const vertex = createShader(gl, gl.VERTEX_SHADER, vertexShader);
@@ -126,7 +226,39 @@ export default function WallBackground() {
       gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
       const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+      const cssResolutionLocation = gl.getUniformLocation(program, "u_css_resolution");
       const timeLocation = gl.getUniformLocation(program, "u_time");
+      const wallTextureLocation = gl.getUniformLocation(program, "u_wall_texture");
+
+      wallTexture = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        1,
+        1,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        new Uint8Array([156, 145, 126, 255])
+      );
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.uniform1i(wallTextureLocation, 0);
+
+      const wallTextureImage = new Image();
+      wallTextureImage.onload = () => {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, wallTextureImage);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      };
+      wallTextureImage.src = "/feelings/window%2001/texture.jpg";
       const resize = () => {
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
         const width = Math.round(window.innerWidth * pixelRatio);
@@ -147,7 +279,10 @@ export default function WallBackground() {
       const render = (now) => {
         resize();
         gl.useProgram(program);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, wallTexture);
         gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+        gl.uniform2f(cssResolutionLocation, window.innerWidth, window.innerHeight);
         gl.uniform1f(timeLocation, (now - start) / 1000);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         animationFrame = requestAnimationFrame(render);
@@ -162,6 +297,7 @@ export default function WallBackground() {
       cancelAnimationFrame(animationFrame);
       resizeObserver?.disconnect();
       if (program) gl.deleteProgram(program);
+      if (wallTexture) gl.deleteTexture(wallTexture);
     };
   }, []);
 

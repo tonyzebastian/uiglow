@@ -1,83 +1,97 @@
 # Window 01: projected window study
 
-This is a real-time, 2D WebGL artwork. The supplied PNGs remain the source artwork; the browser combines them and adds the light, softness, texture, and movement while the scene is playing.
+`/feelings/window-01` is a real-time 2D/WebGL scene. It is not a video or a flattened composite: the browser rebuilds the wall, sunlight, shadows, texture, and movement every frame.
 
-## Artwork stack
+The intended illusion is a window-shaped patch of sun projected onto a painted wall. The window, tree, and leaves are all **light blockers** within that same projection—not separate black drawings placed over the wall.
 
-The scene is drawn in this order, from the wall outward:
+## Render stack
+
+There are two full-screen WebGL canvases:
 
 ```text
-1. Blue wall background
-2. Soft projected sunlight, including its black panel bars
-3. Leaves behind the trunk
-4. Tree trunk
-5. Leaves in front of the trunk
-6. Final grain and colour grade
+1. WallBackground.jsx      opaque, full-page painted wall
+2. WebGLBackground.jsx     transparent projected-light canvas
+   └─ main composition pass → off-screen texture
+   └─ restrained Kuwahara post-process → screen
 ```
 
-This order matters. The panel bars are part of the light source itself, not a separate layer. The tree and leaves appear only where the remaining light reaches the wall, so the image reads as a reflection/shadow rather than several flat layers stacked on top of each other.
+The upper canvas is transparent wherever there is no projected light. That lets the wall shader continue naturally around the light rather than exposing a rectangular image edge.
 
-## Source artwork
+## 1. The wall
 
-All artwork lives in `public/feelings/window 01/` and is still used:
+`WallBackground.jsx` creates the room surface behind everything else.
 
-| Image | Purpose in the scene |
+- Its base palette is a restrained off-white, blue-grey, and mineral-shadow range sampled from the project’s Figma reference.
+- Broad, low-contrast light pools suggest ambient daylight bouncing around the room.
+- A large diagonal occlusion and a softer lower-right falloff keep the wall from being evenly lit.
+- Several scales of procedural noise create uneven paint, plaster, fibres, pores, and tiny speckle. These details are anchored to the wall, so they do not crawl across the screen.
+- `public/feelings/window 01/texture.jpg` is repeated at its native scale with **mirrored tiling**. Mirroring prevents the photograph’s edges from creating an obvious repeat seam.
+- A final neutral exposure pass holds back the upper brightness and darkens the lower wall without introducing a new colour cast.
+
+## 2. The projected light
+
+`sunlightv2.png` is the source opening map.
+
+- White means light can pass through.
+- Black means light is blocked.
+- The window bars and outer frame are painted into this map, so they are part of the source of the projection—not a separate opaque overlay.
+
+The source map is loaded twice:
+
+1. **Core map** — the unblurred map preserves a little definition in the bars and corners.
+2. **Soft map** — the same image is pre-blurred by 64px on an off-screen canvas. This creates the broad, natural falloff of light hitting a wall.
+
+The main shader samples the blurred map at several nearby points, then mixes in a small amount of the core map. The result has a soft projected edge while the panel geometry remains faintly legible. The colour of the light varies from warm golden at thinner edges toward a near-white centre. Slight noise, mottle, plaster absorption, and a weak broken reflection across the upper wall stop it reading as a perfectly uniform digital glow.
+
+## 3. One shared shadow map
+
+The most important compositing rule is that a crossing shadow must not become artificially black.
+
+The shader first calculates a single `unifiedShadow` value. These inputs all feed into it:
+
+- the main panel bars and their corners;
+- a faint, offset panel shadow, suggesting a second/bounced light source;
+- the tree trunk and branches;
+- a subtler offset tree shadow;
+- the back and front animated leaf layers.
+
+Those contributions are combined with `max()`, not layered alpha multiplication. In artist terms: the darkest blocker at a point wins. A tree crossing a bar therefore remains one physical shadow on the wall, rather than two transparent black drawings piled together. The unified value reduces the projected light once, revealing the wall beneath it.
+
+## 4. Tree and leaf movement
+
+The PNG artwork remains separate source material in `public/feelings/window 01/`.
+
+| Asset | Current use |
 | --- | --- |
-| `background.png` | Retained source artwork; the live scene now uses the page's blue background as its wall base. |
-| `sunlightv2.png` | The light-opening map: white admits light; black blocks it, including the panel bars. |
-| `window panels.png` | Original panel artwork, retained as a source reference but no longer rendered separately. |
-| `tree.png` | The softly projected tree trunk and branches. |
-| `leave 01.png`–`leave 07.png` | Foliage, split into layers behind and in front of the tree. |
+| `sunlightv2.png` | Window-shaped light opening and bar/frame blocker map. |
+| `tree.png` | Soft tree trunk and branch blocker. It is pre-blurred by 2.65px and drawn at 82% alpha before entering WebGL. |
+| `leave 01.png`–`leave 07.png` | Moving foliage blockers. Four sit in the foreground group; the rest sit behind it for small depth differences. |
+| `texture.jpg` | Real photographed plaster texture used by both wall and light treatments. |
+| `background.png`, `window panels.png`, `sunlight.png` | Retained original artwork/reference assets; they are not separate live layers in the current render. |
 
-The original PNG files are not edited by the animation. They are loaded as textures: images that the browser can paint with inside the scene.
+Every leaf has an independent origin, drift speed, horizontal/vertical travel, and slight rotation. A slow shared gust occasionally pushes them further. The leaves are repainted to off-screen canvases at most about 30 times per second, then passed to WebGL as textures. The tree itself has only a tiny shader-side sway so it feels rooted while the foliage responds to wind.
 
-## How the light works
+## 5. Material inside the light
 
-The `sunlightv2.png` opening map is drawn into an off-screen canvas with a wide blur before it enters WebGL. This is important because it turns the white opening into a soft projection, rather than leaving a hard rectangle.
+The photographed plaster texture is sampled again in the projected-light shader. Its tone and local relief make the bright area reveal the wall’s surface instead of covering it with flat white. This detail is limited to bright opening areas, so it does not wash over the dark panel bars like another transparent layer.
 
-Inside the shader, black means blocked light and white means light can pass through. The blurred opening map is sampled at several nearby points. That creates a broad, uneven fade instead of a perfect digital blur. A very small amount of the original opening map is mixed back in so the window shape can remain barely readable.
+The main composition canvas also adds very restrained fibre, speckle, and a gentle warm wash only where projected light is present.
 
-The brightness of that light also becomes a mask. The tree and leaves only become visible where the light lands. Outside the projection, they dissolve back into the blue wall.
+## 6. Final post-production
 
-The upper wall includes a second, much weaker effect: broken, hazy traces of reflected light. They begin more strongly from the right and travel across the top toward the projected image. They are not literal rays; they suggest the imperfect path that light took through glass and across a textured wall.
+The completed projected-light canvas is first rendered to an off-screen framebuffer, then passed through a four-sector **Kuwahara** filter.
 
-## How the window panels work
+- It examines four 4px neighbourhood sectors and chooses the calmest one, producing a subtle painterly simplification rather than a standard blur.
+- The effect is mixed at roughly 42% in open areas and can rise to 64% where the tree mask is present.
+- In bright window openings it is reduced to 20% of that strength, preserving the lightly defined panel corners.
+- Plaster relief and a fine post-grain are restored after smoothing so the effect does not make the wall look airbrushed.
 
-The dark panel bars are now painted directly inside `sunlightv2.png`. They block the light at its source, rather than being rendered as another shadow layer over the finished projection. This makes the bars, corners, and intersections feel inseparable from the light on the wall. Tree and leaf shadows are also naturally interrupted wherever a panel blocks the projection.
+This is the scene’s whole-image post-production. It runs only on the transparent projection layer; the full wall has its own independent material shader underneath.
 
-The full opening still receives a wide blur for its outer falloff. The shader mixes in a small amount of the original mask so the panel bars remain more readable than the outer glow.
+## Key files
 
-## How movement works
-
-This is a quiet loop rather than a character animation.
-
-- Each leaf image has its own tiny side-to-side and up-and-down drift.
-- Some leaves are behind the trunk and some are in front, giving the projection depth.
-- The tree shifts by a much smaller amount than the leaves.
-- The motion is based on slow repeating waves plus occasional gentle variation, so it reads as wind rather than as mechanical bouncing.
-
-The browser redraws the canvas continuously. The actual PNGs do not move on disk; their painted position changes slightly each frame.
-
-## Shader and final treatment
-
-The shader is the live image-processing layer. It handles the light blend, the projection mask, the wall reflection, subtle warping, and the way the artwork layers are combined.
-
-After the full composition is assembled, a final whole-image treatment is applied:
-
-- a restrained four-sector Kuwahara pass, which smooths tiny digital detail while preserving the tree and panel edges;
-- fine grain and speckle;
-- subtle warm/cool variation;
-- a soft printed-paper or painted-wall wash.
-
-The Kuwahara pass uses a 4px kernel and is mixed back with the original scene at 42%. Where the tree mask is present, the mix increases to 64%, giving the trunk and branches a stronger painterly treatment. It only processes the light projection, not the full wall. Fine grain is added after that pass, so the painterly smoothing does not erase the material texture.
-
-This is real-time post-production in the browser. There is no separate video, After Effects render, or permanently altered PNG. The result can be tuned in `WebGLBackground.jsx` and will respond immediately in the live scene.
-
-The page behind the canvas is generated by `WallBackground.jsx`, a full-page WebGL wall shader. It combines broad blue pigment variation, fine plaster-like fibres, and restrained speckle. The WebGL light canvas is transparent outside the projection, so the procedural wall texture continues naturally behind the artwork instead of stopping at a rectangular image boundary.
-
-## Files in this entry
-
-- `page.js` — the `/feelings/window-01` route.
-- `FeelingsScene.jsx` — the simple page composition.
-- `FeelingsScene.module.css` — layout and sizing.
-- `WebGLBackground.jsx` — WebGL setup, layer loading, animation, and shader code.
+- `page.js` — route entry for `/feelings/window-01`.
+- `FeelingsScene.jsx` — places the wall canvas and projected-light canvas in order.
+- `FeelingsScene.module.css` — full-viewport layout and responsive art framing.
+- `WallBackground.jsx` — wall palette, broad room lighting, procedural plaster, and tiled texture.
+- `WebGLBackground.jsx` — light opening, shared shadow map, animation canvases, framebuffer rendering, and Kuwahara post-process.
