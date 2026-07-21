@@ -36,7 +36,12 @@ export default function DockNavigation() {
     setIsVisible(!isInIframe)
   }, [pathname])
 
-  if (!mounted || pathname?.startsWith('/vault/') || pathname?.startsWith('/feelings')) {
+  if (
+    !mounted ||
+    pathname?.startsWith('/vault/') ||
+    pathname?.startsWith('/feelings') ||
+    pathname?.startsWith('/client/physio')
+  ) {
     return null
   }
 
