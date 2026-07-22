@@ -20,6 +20,12 @@ const fragmentShader = `
   uniform vec2 u_css_resolution;
   uniform float u_time;
   uniform sampler2D u_wall_texture;
+  uniform float u_exposure;
+  uniform float u_texture_amount;
+  uniform float u_pores_amount;
+  uniform float u_room_variation;
+  uniform float u_diagonal_shadow;
+  uniform float u_corner_shadow;
   varying vec2 v_uv;
 
   float hash(vec2 point) {
@@ -105,10 +111,10 @@ const fragmentShader = `
     float leftBounce = exp(-dot(lightUv - vec2(.14, .57), lightUv - vec2(.14, .57)) * 2.7);
     float lowBounce = exp(-dot(lightUv - vec2(.76, 1.08), lightUv - vec2(.76, 1.08)) * 2.25);
     float topLeftLift = exp(-dot(lightUv - vec2(.19, .91), lightUv - vec2(.19, .91)) * 3.4);
-    wall = mix(wall, offWhite, rightBounce * .075);
-    wall = mix(wall, mineralLight, leftBounce * .055);
-    wall = mix(wall, offWhite, lowBounce * .045);
-    wall = mix(wall, offWhite, topLeftLift * .19);
+    wall = mix(wall, offWhite, rightBounce * .075 * u_room_variation);
+    wall = mix(wall, mineralLight, leftBounce * .055 * u_room_variation);
+    wall = mix(wall, offWhite, lowBounce * .045 * u_room_variation);
+    wall = mix(wall, offWhite, topLeftLift * .19 * u_room_variation);
 
     // A very broad diagonal occlusion gives the room a real directional
     // lighting condition. It starts low on the left and dissolves as it rises
@@ -120,13 +126,13 @@ const fragmentShader = `
     // than ever reading as a distinct diagonal stripe.
     float diagonalShadow = 1.0 - smoothstep(.04, .54, diagonalDistance);
     float diagonalBreakup = .76 + (fbm(lightUv * 3.0 + 12.0) - .5) * .24;
-    wall = mix(wall, mineralShade, diagonalShadow * diagonalBreakup * .20);
+    wall = mix(wall, mineralShade, diagonalShadow * diagonalBreakup * .20 * u_diagonal_shadow);
 
     // The lower-right corner receives less of the room's bounced daylight.
     // It is deliberately broad so it feels like a corner falling away, not a
     // painted vignette.
     float lowerRightOcclusion = exp(-dot(lightUv - vec2(1.58, .08), lightUv - vec2(1.58, .08)) * 4.4);
-    wall = mix(wall, deepShadow, lowerRightOcclusion * .25);
+    wall = mix(wall, deepShadow, lowerRightOcclusion * .25 * u_corner_shadow);
 
     // Fine pores plus a very soft vertical application grain. These are
     // anchored to the wall, never animated as screen grain.
@@ -134,8 +140,8 @@ const fragmentShader = `
     float fibres = fbm(v_uv * vec2(105.0, 720.0) + vec2(2.0, 5.0)) - .5;
     float speckle = hash(floor(v_uv * u_resolution * 1.15)) - .5;
     float poreDots = smoothstep(.84, .985, hash(floor(v_uv * u_resolution * .58) + 17.0));
-    wall += pores * .022 + fibres * .012 + speckle * .010;
-    wall -= poreDots * .022;
+    wall += (pores * .022 + fibres * .012 + speckle * .010) * u_pores_amount;
+    wall -= poreDots * .022 * u_pores_amount;
 
     // Repeat the photograph at its native 640px scale. It is mirrored at
     // each join so its non-seamless edges cannot form a grid on the wall.
@@ -154,7 +160,7 @@ const fragmentShader = `
       dot(texture2D(u_wall_texture, textureUv - vec2(0.0, texturePixel.y)).rgb, vec3(.2126, .7152, .0722))
     ) * .25;
     float plasterRelief = plasterValue - surroundingPlaster;
-    wall *= 1.0 + plasterTone * .23 + plasterRelief * .56;
+    wall *= 1.0 + (plasterTone * .23 + plasterRelief * .56) * u_texture_amount;
 
     // Final exposure pass: it changes only brightness, never the palette.
     // The lower part of the room falls away from the light, while the bright
@@ -164,7 +170,7 @@ const fragmentShader = `
     wall *= 1.0 - bottomDarkening * .17 - topToning * .26;
 
     // Final neutral exposure filter, applied after every other wall treatment.
-    wall *= .85;
+    wall *= u_exposure;
 
     gl_FragColor = vec4(wall, 1.0);
   }
@@ -184,8 +190,13 @@ function createShader(gl, type, source) {
   return shader;
 }
 
-export default function WallBackground() {
+export default function WallBackground({ controls }) {
   const canvasRef = useRef(null);
+  const controlsRef = useRef(controls);
+
+  useEffect(() => {
+    controlsRef.current = controls;
+  }, [controls]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -229,6 +240,12 @@ export default function WallBackground() {
       const cssResolutionLocation = gl.getUniformLocation(program, "u_css_resolution");
       const timeLocation = gl.getUniformLocation(program, "u_time");
       const wallTextureLocation = gl.getUniformLocation(program, "u_wall_texture");
+      const exposureLocation = gl.getUniformLocation(program, "u_exposure");
+      const textureAmountLocation = gl.getUniformLocation(program, "u_texture_amount");
+      const poresAmountLocation = gl.getUniformLocation(program, "u_pores_amount");
+      const roomVariationLocation = gl.getUniformLocation(program, "u_room_variation");
+      const diagonalShadowLocation = gl.getUniformLocation(program, "u_diagonal_shadow");
+      const cornerShadowLocation = gl.getUniformLocation(program, "u_corner_shadow");
 
       wallTexture = gl.createTexture();
       gl.activeTexture(gl.TEXTURE0);
@@ -261,8 +278,9 @@ export default function WallBackground() {
       wallTextureImage.src = "/feelings/window%2001/texture.jpg";
       const resize = () => {
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-        const width = Math.round(window.innerWidth * pixelRatio);
-        const height = Math.round(window.innerHeight * pixelRatio);
+        const bounds = canvas.getBoundingClientRect();
+        const width = Math.round(bounds.width * pixelRatio);
+        const height = Math.round(bounds.height * pixelRatio);
 
         if (canvas.width !== width || canvas.height !== height) {
           canvas.width = width;
@@ -273,7 +291,7 @@ export default function WallBackground() {
 
       resize();
       resizeObserver = new ResizeObserver(resize);
-      resizeObserver.observe(document.documentElement);
+      resizeObserver.observe(canvas);
 
       const start = performance.now();
       const render = (now) => {
@@ -282,7 +300,15 @@ export default function WallBackground() {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, wallTexture);
         gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-        gl.uniform2f(cssResolutionLocation, window.innerWidth, window.innerHeight);
+        const bounds = canvas.getBoundingClientRect();
+        gl.uniform2f(cssResolutionLocation, bounds.width, bounds.height);
+        const current = controlsRef.current;
+        gl.uniform1f(exposureLocation, current.exposure);
+        gl.uniform1f(textureAmountLocation, current.texture);
+        gl.uniform1f(poresAmountLocation, current.pores);
+        gl.uniform1f(roomVariationLocation, current.roomVariation);
+        gl.uniform1f(diagonalShadowLocation, current.diagonalShadow);
+        gl.uniform1f(cornerShadowLocation, current.cornerShadow);
         gl.uniform1f(timeLocation, (now - start) / 1000);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         animationFrame = requestAnimationFrame(render);

@@ -1,5 +1,6 @@
 import { Merriweather, Raleway } from "next/font/google";
 import "./globals.css";
+import "dialkit/styles.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import DockNavigation from "@/components/DockNavigation";
 
