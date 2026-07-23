@@ -25,6 +25,7 @@ const fragmentShader = `
   uniform float u_pores_amount;
   uniform float u_room_variation;
   uniform float u_corner_shadow;
+  uniform float u_wall_warmth;
   uniform float u_canopy_enabled;
   uniform float u_canopy_intensity;
   uniform float u_canopy_movement;
@@ -184,6 +185,12 @@ const fragmentShader = `
 
     // Final neutral exposure filter, applied after every other wall treatment.
     wall *= u_exposure;
+    // Wall warmth is deliberately separate from exposure. A small chromatic
+    // bias rather than a brightness lift makes its response visible even in
+    // the pale plaster, while the wall texture and tonal structure remain.
+    float wallWarmth = clamp(u_wall_warmth, 0.0, 1.5);
+    vec3 warmWallTint = vec3(1.055, .972, .79);
+    wall *= mix(vec3(1.0), warmWallTint, wallWarmth);
 
     // A second, broad daylight source lives across the wall rather than in
     // the window projection. It is deliberately abstract: overlapping noise
@@ -339,6 +346,7 @@ export default function WallBackground({ controls, canopyControls, reflectedFlec
       const poresAmountLocation = gl.getUniformLocation(program, "u_pores_amount");
       const roomVariationLocation = gl.getUniformLocation(program, "u_room_variation");
       const cornerShadowLocation = gl.getUniformLocation(program, "u_corner_shadow");
+      const wallWarmthLocation = gl.getUniformLocation(program, "u_wall_warmth");
       const canopyEnabledLocation = gl.getUniformLocation(program, "u_canopy_enabled");
       const canopyIntensityLocation = gl.getUniformLocation(program, "u_canopy_intensity");
       const canopyMovementLocation = gl.getUniformLocation(program, "u_canopy_movement");
@@ -413,6 +421,7 @@ export default function WallBackground({ controls, canopyControls, reflectedFlec
         gl.uniform1f(poresAmountLocation, current.pores);
         gl.uniform1f(roomVariationLocation, current.roomVariation);
         gl.uniform1f(cornerShadowLocation, current.cornerShadow);
+        gl.uniform1f(wallWarmthLocation, current.wallWarmth);
         const canopy = canopyControlsRef.current;
         gl.uniform1f(canopyEnabledLocation, canopy.enabled ? 1 : 0);
         gl.uniform1f(canopyIntensityLocation, canopy.intensity);

@@ -14,45 +14,46 @@ export default function FeelingsScene() {
       master: {
         enabled: true,
         artworkOpacity: [1, 0, 1, .01],
-        projectionScale: [1.39, .5, 2, .01],
+        projectionScale: [1.4, .5, 2, .01],
       },
       light: {
         _collapsed: false,
         enabled: true,
         intensity: [2.4, 0, 2.4, .01],
         coreDefinition: [1, 0, 1, .01],
-        coreFeather: [5, 0, 8, .05],
-        warmth: [0, 0, 1.5, .01],
+        coreFeather: [6.85, 0, 8, .05],
+        warmth: [.38, 0, 1.5, .01],
         textureRelief: [2, 0, 2, .01],
       },
       shadows: {
         _collapsed: true,
-        branches: [1, 0, 1, .01],
-        branchCoreFeather: [3.65, 0, 8, .05],
-        leavesBehind: [1, 0, 1, .01],
-        leavesInFront: [1, 0, 1, .01],
-        leafCoreFeather: [4.1, 0, 8, .05],
+        branches: [.5, 0, 1, .01],
+        branchCoreFeather: [4.65, 0, 8, .05],
+        leavesBehind: [.85, 0, 1, .01],
+        leavesInFront: [.7, 0, 1, .01],
+        leafCoreFeather: [5.75, 0, 8, .05],
         secondShadow: true,
-        secondShadowOpacity: [.14, 0, .6, .01],
+        secondShadowOpacity: [.39, 0, .6, .01],
         secondShadowPanels: true,
-        secondShadowPanelOpacity: [.32, 0, .6, .01],
-        secondShadowX: [9, -30, 30, 1],
-        secondShadowY: [-12, -30, 30, 1],
+        secondShadowPanelOpacity: [.3, 0, .6, .01],
+        secondShadowX: [8, -30, 30, 1],
+        secondShadowY: [-10, -30, 30, 1],
       },
       wall: {
         _collapsed: true,
-        exposure: [.77, .35, 1.25, .01],
+        exposure: [.91, .35, 1.25, .01],
         texture: [2, 0, 2, .01],
-        pores: [2, 0, 2, .01],
-        roomVariation: [1.58, 0, 2, .01],
-        cornerShadow: [0, 0, 2, .01],
+        pores: [1.57, 0, 2, .01],
+        roomVariation: [.67, 0, 2, .01],
+        cornerShadow: [2, 0, 2, .01],
+        wallWarmth: [.32, 0, 1.5, .01],
       },
       ambientCanopy: {
         _collapsed: true,
         enabled: true,
         intensity: [1, 0, 1, .01],
         movement: [1, 0, 1, .01],
-        scale: [2.09, .5, 2.5, .01],
+        scale: [.59, .5, 2.5, .01],
         horizontalSpread: [1.5, .15, 1.5, .01],
         verticalReach: [1, .12, 1, .01],
         softness: [1, 0, 1, .01],
@@ -61,26 +62,26 @@ export default function FeelingsScene() {
         _collapsed: true,
         enabled: true,
         intensity: [.5, 0, 1, .01],
-        movement: [.42, 0, 1, .01],
-        size: [1, .5, 2, .01],
-        spread: [.9, 0, 1, .01],
+        movement: [.59, 0, 1, .01],
+        size: [1.1, .5, 2, .01],
+        spread: [.69, 0, 1, .01],
       },
       postProduction: {
         _collapsed: true,
         kuwahara: true,
-        kuwaharaStrength: [2.46, 0, 3, .01],
-        grain: [.89, 0, 3, .01],
+        kuwaharaStrength: [3, 0, 3, .01],
+        grain: [3, 0, 3, .01],
         warmWash: [3, 0, 3, .01],
       },
       animation: {
         _collapsed: true,
         enabled: true,
         branchSway: [2, 0, 2, .01],
-        lightDrift: [.9, 0, 2, .01],
+        lightDrift: [.98, 0, 2, .01],
       },
     },
     // Adds the reflected-light layer while retaining the approved branch rig.
-    { id: "window-01-art-direction-v7", persist: true }
+    { id: "window-01-art-direction-v10", persist: true }
   );
 
   // Stable DialKit ids intentionally keep a panel alive during Fast Refresh.
@@ -92,6 +93,9 @@ export default function FeelingsScene() {
     DialStore.unregisterPanel("window-01-art-direction-v4");
     DialStore.unregisterPanel("window-01-art-direction-v5");
     DialStore.unregisterPanel("window-01-art-direction-v6");
+    DialStore.unregisterPanel("window-01-art-direction-v7");
+    DialStore.unregisterPanel("window-01-art-direction-v8");
+    DialStore.unregisterPanel("window-01-art-direction-v9");
   }, []);
 
   return (
