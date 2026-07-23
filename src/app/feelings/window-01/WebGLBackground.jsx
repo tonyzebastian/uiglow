@@ -29,8 +29,6 @@ const fragmentShader = `
   uniform float u_core_definition;
   uniform float u_warmth;
   uniform float u_texture_relief;
-  uniform float u_reflected_paths;
-  uniform float u_edge_bounce;
   uniform float u_light_drift;
   uniform float u_post_grain;
   uniform float u_warm_wash;
@@ -79,14 +77,18 @@ const fragmentShader = `
 
   void main() {
     vec2 pixel = 1.0 / u_resolution;
-    float drift = u_time * 0.018 * u_light_drift;
+    float driftPhase = u_time * .42 * u_light_drift;
+    vec2 drift = vec2(
+      sin(driftPhase) * .012,
+      cos(driftPhase * .83 + .6) * .008
+    ) * u_light_drift;
     vec2 warp = vec2(
-      softNoise(v_uv * 4.5 + vec2(drift, 1.7)),
-      softNoise(v_uv * 4.5 + vec2(5.1, drift * .76))
+      softNoise(v_uv * 4.5 + vec2(drift.x, 1.7 + drift.y)),
+      softNoise(v_uv * 4.5 + vec2(5.1 + drift.x, drift.y * .76))
     ) - .5;
 
     // A tiny low-frequency warp and five-tap blend soften the rigid digital edge.
-    vec2 paintedUv = clamp(v_uv + warp * .0019, 0.0, 1.0);
+    vec2 paintedUv = clamp(v_uv + drift + warp * .0019, 0.0, 1.0);
     vec3 centre = texture2D(u_background, paintedUv).rgb;
     vec3 blur = (
       texture2D(u_background, paintedUv + vec2(pixel.x, 0.0) * 1.4).rgb +
@@ -100,26 +102,7 @@ const fragmentShader = `
     float baseLuma = dot(color, vec3(.2126, .7152, .0722));
     color = mix(color, vec3(baseLuma) * vec3(1.035, 1.02, .98), .9);
 
-    // Daylight arrives from the right. Before it becomes the window-shaped
-    // projection, faint broken reflections travel across the upper wall.
-    // These are deliberately uneven paths, not rays with graphic edges.
-    float upperWall = 1.0 - smoothstep(.14, .67, v_uv.y);
-    float fromRight = smoothstep(.03, .98, v_uv.x) * .48 + .52;
-    float pathWarp = softNoise(v_uv * vec2(2.1, 3.2) + vec2(drift * .55, 3.0)) - .5;
-    float pathLine = .5 + .5 * sin(
-      v_uv.y * 24.0 + v_uv.x * 3.5 + pathWarp * 8.0
-    );
-    float brokenPath = smoothstep(
-      .55,
-      .78,
-      softNoise(v_uv * vec2(3.2, 8.5) + vec2(drift * .4, 7.0))
-    );
-    float lightPath = pow(pathLine, 5.0) * brokenPath * upperWall * fromRight;
-    float broadHaze = softNoise(v_uv * vec2(1.1, 2.25) + vec2(1.0, drift * .25));
-    lightPath += max(0.0, broadHaze - .69) * upperWall * .15;
-    vec3 reflectedGlow = 1.0 - (1.0 - color) * (1.0 - vec3(.84, .81, .73));
-    color = mix(color, reflectedGlow, lightPath * .34 * u_reflected_paths);
-    float warmVariation = softNoise(v_uv * 1.45 + vec2(2.0, drift * .4)) - .5;
+    float warmVariation = softNoise(v_uv * 1.45 + vec2(2.0 + drift.x, drift.y * .4)) - .5;
     color *= vec3(1.0 + warmVariation * .016, 1.0 + warmVariation * .010, 1.0 - warmVariation * .010);
 
     // Both maps come from the same canvas composition. The core preserves the
@@ -136,21 +119,11 @@ const fragmentShader = `
     float edgeAmount = clamp(u_core_definition + (softNoise(paintedUv * 9.0 + 4.0) - .5) * .045, 0.0, 1.0);
     float sunlightMask = mix(softSunlightMask, composedCore, edgeAmount);
     sunlightMask = pow(sunlightMask, mix(1.48, .76, edgeAmount));
-    // At the physical frame joints, a little light scatters around both sides
-    // of the intersection. This subtly lifts those dark squares without
-    // brightening the whole bar or painting another layer over the tree.
-    float barHere = 1.0 - composedCore;
-    float barLeft = 1.0 - lightMask(texture2D(u_sunlight_core, paintedUv - vec2(pixel.x, 0.0) * 2.5));
-    float barRight = 1.0 - lightMask(texture2D(u_sunlight_core, paintedUv + vec2(pixel.x, 0.0) * 2.5));
-    float barUp = 1.0 - lightMask(texture2D(u_sunlight_core, paintedUv + vec2(0.0, pixel.y) * 2.5));
-    float barDown = 1.0 - lightMask(texture2D(u_sunlight_core, paintedUv - vec2(0.0, pixel.y) * 2.5));
-    float panelJoin = barHere * min(barLeft, barRight) * min(barUp, barDown);
-    sunlightMask += panelJoin * smoothstep(.06, .64, softSunlightMask) * .28 * u_edge_bounce;
     sunlightMask = clamp(sunlightMask, 0.0, 1.0);
     // Broad, imperfect density changes keep the light from feeling like one
     // flat white fill. They move slowly enough to suggest filtered daylight.
-    float lightMottle = softNoise(paintedUv * vec2(2.35, 3.1) + vec2(drift * .36, 12.0)) - .5;
-    float lightVariation = softNoise(paintedUv * 5.0 + vec2(drift * .65, 2.0)) - .5;
+    float lightMottle = softNoise(paintedUv * vec2(2.35, 3.1) + drift * .36 + vec2(0.0, 12.0)) - .5;
+    float lightVariation = softNoise(paintedUv * 5.0 + drift * .65 + vec2(0.0, 2.0)) - .5;
     // Plaster absorbs light unevenly. The larger movement belongs to the
     // paint coat; the tiny variation is the light catching pores and raised
     // bits of wall rather than a grain layer pasted over the scene.
@@ -173,8 +146,7 @@ const fragmentShader = `
     // controls where it fades away, rather than lowering the light itself.
     // The path dial must live inside the visible light as well as on the wall
     // before it. Otherwise its detail disappears with the transparent canvas.
-    float reflectedLightDensity = lightPath * .24 * u_reflected_paths;
-    float sunAmount = clamp((sunlightMask + reflectedLightDensity * softSunlightMask) * u_light_intensity * lightDensity, 0.0, 1.0);
+    float sunAmount = clamp(sunlightMask * u_light_intensity * lightDensity, 0.0, 1.0);
     // Daylight shifts from near-white at its dense centre to a richer gold at
     // its thinner soft edge, as warm sun does on a plaster wall.
     float sunValue = composedCore;
@@ -186,15 +158,6 @@ const fragmentShader = `
     vec3 screenedLight = 1.0 - (1.0 - color) * (1.0 - sunColor);
     color = mix(color, screenedLight, sunAmount);
     color *= 1.0 + (projectedPlasterTone * .075 + projectedPlasterRelief * .24) * sunAmount * u_texture_relief;
-
-    // A selective, pale bounce sits inside the projection's soft edge. It
-    // is gently biased toward the incoming-light side rather than forming an
-    // even halo around the whole window.
-    float softEdge = smoothstep(.05, .55, softSunlightMask) * (1.0 - smoothstep(.30, .88, sunlightMask));
-    float incomingSide = mix(.62, 1.0, smoothstep(.18, .95, paintedUv.x));
-    vec3 bounceColor = vec3(.86, .84, .76);
-    vec3 screenedBounce = 1.0 - (1.0 - color) * (1.0 - bounceColor);
-    color = mix(color, screenedBounce, softEdge * incomingSide * .11 * u_edge_bounce);
 
     // Fixed wall detail remains visible through the bright light. It is
     // anchored to the wall; animated screen grain would make the surface feel
@@ -212,8 +175,8 @@ const fragmentShader = `
     color += (fibre * .026 + speckle * .009 + plasterPores * .028) * projectionPresence * u_post_grain;
 
     // A barely-warm, uneven wash keeps the projection tied to the plaster.
-    float wash = softNoise(v_uv * 2.5 + vec2(4.0, drift)) - .5;
-    color = mix(color, color * vec3(1.025, .995, .95), (wash * .11 + .055) * projectionPresence * u_warm_wash);
+    float wash = softNoise(v_uv * 2.5 + vec2(4.0 + drift.x, drift.y)) - .5;
+    color = mix(color, color * vec3(1.05, .99, .90), (wash * .16 + .10) * projectionPresence * u_warm_wash);
     // Let the page-level wall texture show through wherever there is no
     // projected light. The canvas only contributes the light and its haze.
     float canvasAlpha = projectionPresence;
@@ -300,7 +263,7 @@ const kuwaharaFragmentShader = `
     // the painterly treatment for projected shadows, but pull it back inside
     // the bright openings rather than smearing a second effect over them.
     float panelOpening = smoothstep(.30, .76, original.a);
-    painterlyStrength *= mix(1.0, .20, panelOpening);
+    painterlyStrength *= mix(1.0, .55, panelOpening);
     vec3 color = mix(original.rgb, finalColor, original.a * painterlyStrength);
     // Restore photographed plaster after the smoothing pass. The scene alpha
     // confines it to the light projection, so it reads as wall texture being
@@ -319,7 +282,7 @@ const kuwaharaFragmentShader = `
     float textureInLight = original.a * smoothstep(.30, .76, original.a);
     color *= 1.0 + (plasterTone * .26 + plasterRelief * .85) * textureInLight;
     float postGrain = hash(floor(v_uv * u_resolution * 1.1)) - .5;
-    color += postGrain * .009 * original.a * u_post_grain;
+    color += postGrain * .018 * original.a * u_post_grain;
     gl_FragColor = vec4(color, original.a);
   }
 `;
@@ -382,13 +345,13 @@ export default function WebGLBackground({ controls }) {
     let blockerCanvas;
     let blockerContext;
     let sunlightImage;
-    let treeCanvas;
-    let treeContext;
-    let treeImage;
+    let branchCanvas;
+    let branchContext;
     let panelBlockerCanvas;
     let panelBlockerContext;
+    let branchImages = [];
     let leafImages = [];
-    let lastLeafPaint = 0;
+    let lastRigPaint = 0;
 
     try {
       const vertex = createShader(gl, gl.VERTEX_SHADER, vertexShader);
@@ -502,8 +465,6 @@ export default function WebGLBackground({ controls }) {
       const coreDefinitionLocation = gl.getUniformLocation(program, "u_core_definition");
       const warmthLocation = gl.getUniformLocation(program, "u_warmth");
       const textureReliefLocation = gl.getUniformLocation(program, "u_texture_relief");
-      const reflectedPathsLocation = gl.getUniformLocation(program, "u_reflected_paths");
-      const edgeBounceLocation = gl.getUniformLocation(program, "u_edge_bounce");
       const lightDriftLocation = gl.getUniformLocation(program, "u_light_drift");
       const postGrainLocation = gl.getUniformLocation(program, "u_post_grain");
       const warmWashLocation = gl.getUniformLocation(program, "u_warm_wash");
@@ -554,7 +515,8 @@ export default function WebGLBackground({ controls }) {
       // original texture size. Without this padding, a canvas blur is clipped
       // at all four sides and looks like a dark overlay at the corners.
       lightBlurCanvas = document.createElement("canvas");
-      // 110px padding supports the full range of the live softness dial.
+      // Padding keeps the fixed zero-blur copy safe if the projection treatment
+      // is retuned later without changing the source bounds.
       lightBlurCanvas.width = 842;
       lightBlurCanvas.height = 1078;
       lightBlurContext = lightBlurCanvas.getContext("2d");
@@ -568,29 +530,10 @@ export default function WebGLBackground({ controls }) {
       panelBlockerContext = panelBlockerCanvas.getContext("2d");
       sunlightImage = new Image();
 
-      treeCanvas = document.createElement("canvas");
-      treeCanvas.width = 622;
-      treeCanvas.height = 858;
-      treeContext = treeCanvas.getContext("2d");
-      treeImage = new Image();
-      const paintTree = () => {
-        if (!treeImage.complete || !treeImage.naturalWidth) return;
-        treeContext.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
-        treeContext.save();
-        // The tree is a shadow projected onto plaster, not a cut-out drawing.
-        // Its small branch tips should dissolve before they reach the wall.
-        treeContext.filter = `blur(${controlsRef.current.shadows.treeCoreFeather}px)`;
-        treeContext.globalAlpha = .82;
-        treeContext.drawImage(treeImage, 0, 0, treeCanvas.width, treeCanvas.height);
-        treeContext.restore();
-
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, treeTexture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, treeCanvas);
-      };
-      treeImage.onload = paintTree;
-      treeImage.src = "/feelings/window%2001/tree.png";
+      branchCanvas = document.createElement("canvas");
+      branchCanvas.width = 622;
+      branchCanvas.height = 858;
+      branchContext = branchCanvas.getContext("2d");
 
       leavesBackCanvas = document.createElement("canvas");
       leavesBackCanvas.width = 622;
@@ -601,31 +544,35 @@ export default function WebGLBackground({ controls }) {
       leavesFrontCanvas.height = 858;
       leavesFrontContext = leavesFrontCanvas.getContext("2d");
 
-      const leafSources = [
-        "leave%2001.png",
-        "leave%2002.png",
-        "leave%2003.png",
-        "leave%2004.png",
-        "leave%2005.png",
-        "leave%2006.png",
-        "leave%2007.png",
-      ];
+      const branchSources = ["branch_01.png", "branch_02.png", "branch_03.png", "branch_04.png", "branch_05.png"];
+      branchImages = branchSources.map((source) => {
+        const image = new Image();
+        image.src = `/feelings/window%2001/new_scene/${source}`;
+        return image;
+      });
+      const leafSources = Array.from(
+        { length: 13 },
+        (_, index) => `leaves_${String(index + 1).padStart(2, "0")}.png`
+      );
       leafImages = leafSources.map((source) => {
         const image = new Image();
-        image.src = `/feelings/window%2001/${source}`;
+        image.src = `/feelings/window%2001/new_scene/${source}`;
         return image;
       });
 
-      const leafMotion = [
-        { origin: [175, 230], speed: .52, x: 3.8, y: 1.3, rotate: .010 },
-        { origin: [427, 168], speed: .44, x: 3.1, y: 1.8, rotate: -.008 },
-        { origin: [287, 104], speed: .61, x: 4.4, y: 1.1, rotate: .012 },
-        { origin: [508, 278], speed: .48, x: 3.5, y: 1.5, rotate: -.009 },
-        { origin: [112, 307], speed: .67, x: 4.8, y: 1.7, rotate: .013 },
-        { origin: [371, 233], speed: .39, x: 2.8, y: 1.0, rotate: -.007 },
-        { origin: [529, 122], speed: .58, x: 4.1, y: 1.4, rotate: .011 },
+      // Every layer pivots from the top-right of the opening. Leaves are
+      // attached to one of the five branch layers, so their main movement is
+      // inherited from the branch rather than drifting independently.
+      const branchAnchor = [622, 0];
+      const branchMotion = [
+        { speed: .48, sway: .022, phase: .2 },
+        { speed: .39, sway: -.018, phase: 1.7 },
+        { speed: .57, sway: .025, phase: 3.1 },
+        { speed: .43, sway: -.021, phase: 4.4 },
+        { speed: .51, sway: .019, phase: 5.6 },
       ];
-      const foregroundLeafIndexes = new Set([1, 3, 4, 6]);
+      const leafBranchIndexes = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4];
+      const foregroundLeafIndexes = new Set([1, 3, 5, 7, 9, 11]);
 
       const paintBlackBlocker = (source, alpha, offsetX = 0, offsetY = 0) => {
         if (!source || !blockerContext || !lightCoreContext) return;
@@ -668,8 +615,10 @@ export default function WebGLBackground({ controls }) {
       const paintLightMasks = () => {
         if (!sunlightImage?.complete || !sunlightImage.naturalWidth) return;
         const current = controlsRef.current;
-        paintTree();
-
+        const shadows = current.shadows;
+        const branchOpacity = shadows.branches ?? shadows.tree ?? 1;
+        const leavesBehind = shadows.leavesBehind ?? 1;
+        const leavesInFront = shadows.leavesInFront ?? 1;
         lightCoreContext.clearRect(0, 0, lightCoreCanvas.width, lightCoreCanvas.height);
         // A tiny feather prevents the core from becoming an ink-like outline
         // when it is mixed with the broad soft-light version.
@@ -687,14 +636,14 @@ export default function WebGLBackground({ controls }) {
         }
         // Black drawn over black changes nothing. This is what prevents a
         // branch crossing a panel bar from accumulating into a darker mark.
-        paintBlackBlocker(treeCanvas, current.shadows.tree);
-        paintBlackBlocker(leavesBackCanvas, current.shadows.leavesBehind);
-        paintBlackBlocker(leavesFrontCanvas, current.shadows.leavesInFront);
+        paintBlackBlocker(branchCanvas, branchOpacity);
+        paintBlackBlocker(leavesBackCanvas, leavesBehind);
+        paintBlackBlocker(leavesFrontCanvas, leavesInFront);
         // A quiet second source stays visible beside the tree but cannot make
         // an overlap darker than the main black blocker.
         if (current.shadows.secondShadow) {
           paintBlackBlocker(
-            treeCanvas,
+            branchCanvas,
             current.shadows.secondShadowOpacity,
             current.shadows.secondShadowX,
             current.shadows.secondShadowY
@@ -703,7 +652,7 @@ export default function WebGLBackground({ controls }) {
 
         lightBlurContext.clearRect(0, 0, lightBlurCanvas.width, lightBlurCanvas.height);
         lightBlurContext.save();
-        lightBlurContext.filter = `blur(${current.light.softness}px)`;
+        lightBlurContext.filter = "blur(0px)";
         lightBlurContext.drawImage(lightCoreCanvas, 110, 110);
         lightBlurContext.restore();
         lightSoftContext.clearRect(0, 0, lightSoftCanvas.width, lightSoftCanvas.height);
@@ -719,33 +668,59 @@ export default function WebGLBackground({ controls }) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, lightSoftCanvas);
       };
 
-      const paintLeaves = (time) => {
-        if (!leavesBackContext || !leavesFrontContext || !leafImages.length || time - lastLeafPaint < 33) return;
-        lastLeafPaint = time;
+      const paintBranchRig = (time) => {
+        if (!branchContext || !leavesBackContext || !leavesFrontContext || time - lastRigPaint < 33) return;
+        lastRigPaint = time;
+        const current = controlsRef.current;
+        const movement = current.animation.enabled
+          ? (current.animation.branchSway ?? current.animation.leafMovement ?? 1.12)
+          : 0;
+        const branchFeather = current.shadows.branchCoreFeather
+          ?? current.shadows.treeCoreFeather
+          ?? 5.5;
+        const leafFeather = current.shadows.leafCoreFeather ?? 5.5;
+        const branchAngles = branchMotion.map((motion) => {
+          const phase = time * .001 * motion.speed * movement + motion.phase;
+          const gust = Math.sin(time * .00023 * movement + motion.phase * .7) * .35;
+          return (Math.sin(phase) + gust) * motion.sway * movement;
+        });
+
+        branchContext.clearRect(0, 0, branchCanvas.width, branchCanvas.height);
         leavesBackContext.clearRect(0, 0, leavesBackCanvas.width, leavesBackCanvas.height);
         leavesFrontContext.clearRect(0, 0, leavesFrontCanvas.width, leavesFrontCanvas.height);
 
+        branchImages.forEach((image, index) => {
+          if (!image.complete || !image.naturalWidth) return;
+          branchContext.save();
+          branchContext.translate(branchAnchor[0], branchAnchor[1]);
+          branchContext.rotate(branchAngles[index]);
+          branchContext.translate(-branchAnchor[0], -branchAnchor[1]);
+          branchContext.filter = `blur(${branchFeather}px)`;
+          branchContext.globalAlpha = .84;
+          branchContext.drawImage(image, 0, 0, 622, 858);
+          branchContext.restore();
+        });
+
         leafImages.forEach((image, index) => {
           if (!image.complete || !image.naturalWidth) return;
-          const motion = leafMotion[index];
-          const movement = controlsRef.current.animation.enabled
-            ? controlsRef.current.animation.leafMovement
-            : 0;
-          const gust = Math.max(0, Math.sin(time * .00034 * movement - .95)) * movement;
-          const phase = time * .001 * motion.speed * movement + index * 1.73;
-          const x = Math.sin(phase) * motion.x + gust * motion.x * .85;
-          const y = Math.cos(phase * 1.19) * motion.y - gust * motion.y * .45;
-          const rotation = Math.sin(phase * .86) * motion.rotate + gust * motion.rotate * 1.8;
+          const branchIndex = leafBranchIndexes[index];
+          const flutterPhase = time * .001 * (.72 + (index % 4) * .11) * movement + index * 1.37;
+          const flutter = Math.sin(flutterPhase) * (.004 + (index % 3) * .0015) * movement;
           const targetContext = foregroundLeafIndexes.has(index) ? leavesFrontContext : leavesBackContext;
 
           targetContext.save();
-          targetContext.translate(motion.origin[0] + x, motion.origin[1] + y);
-          targetContext.rotate(rotation);
-          targetContext.translate(-motion.origin[0], -motion.origin[1]);
-          targetContext.filter = `blur(${controlsRef.current.shadows.leafCoreFeather}px)`;
+          targetContext.translate(branchAnchor[0], branchAnchor[1]);
+          targetContext.rotate(branchAngles[branchIndex] + flutter);
+          targetContext.translate(-branchAnchor[0], -branchAnchor[1]);
+          targetContext.filter = `blur(${leafFeather}px)`;
           targetContext.drawImage(image, 0, 0, 622, 858);
           targetContext.restore();
         });
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, treeTexture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, branchCanvas);
 
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, leavesBackTexture);
@@ -784,7 +759,7 @@ export default function WebGLBackground({ controls }) {
       const start = performance.now();
       const render = (now) => {
         resize();
-        paintLeaves(now);
+        paintBranchRig(now);
         paintLightMasks();
         gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer);
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -808,8 +783,6 @@ export default function WebGLBackground({ controls }) {
         gl.uniform1f(coreDefinitionLocation, current.light.coreDefinition);
         gl.uniform1f(warmthLocation, current.light.warmth);
         gl.uniform1f(textureReliefLocation, current.light.textureRelief);
-        gl.uniform1f(reflectedPathsLocation, current.light.reflectedPaths);
-        gl.uniform1f(edgeBounceLocation, current.light.edgeBounce);
         gl.uniform1f(lightDriftLocation, current.animation.enabled ? current.animation.lightDrift : 0);
         gl.uniform1f(postGrainLocation, current.postProduction.grain);
         gl.uniform1f(warmWashLocation, current.postProduction.warmWash);

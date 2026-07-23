@@ -36,12 +36,12 @@ The upper canvas is transparent wherever there is no projected light. That lets 
 - Black means light is blocked.
 - The window bars and outer frame are painted into this map, so they are part of the source of the projection—not a separate opaque overlay.
 
-The source map first becomes the clear **opening core**. Before anything is softened, the animated tree and leaf blockers are painted into it on an off-screen canvas. That canvas then produces two versions of this *single final composition*:
+The source map first becomes the clear **opening core**. Before anything is softened, the animated branch rig and leaf blockers are painted into it on an off-screen canvas. That canvas then produces two versions of this *single final composition*:
 
 1. **Combined core** — retains a little definition in the bars and corners.
 2. **Combined soft map** — a real 42px canvas blur of that same composed image, creating the broad falloff of light hitting a wall.
 
-The final light mixes those two versions. This is crucial: the soft light cannot ignore the tree or leaves, because it is generated after they have been combined with the window opening. Using a true blur avoids the visible duplicate bars that a small number of wide shader samples can create. The colour of the light varies from warm golden at thinner edges toward a near-white centre. Slight noise, mottle, plaster absorption, and a weak broken reflection across the upper wall stop it reading as a perfectly uniform digital glow.
+The final light mixes those two versions. This is crucial: the soft light cannot ignore the branches or leaves, because it is generated after they have been combined with the window opening. Using a true blur avoids the visible duplicate bars that a small number of wide shader samples can create. The colour of the light varies from warm golden at thinner edges toward a near-white centre. Slight noise, mottle, plaster absorption, and a weak broken reflection across the upper wall stop it reading as a perfectly uniform digital glow.
 
 ## 3. One shared shadow map
 
@@ -51,25 +51,25 @@ The shader first calculates a single `unifiedShadow` value. These inputs all fee
 
 - the main panel bars and their corners;
 - a faint, offset panel shadow, suggesting a second/bounced light source;
-- the tree trunk and branches;
-- a subtler offset tree shadow;
+- the top-right branch rig;
+- a subtler offset branch shadow;
 - the back and front animated leaf layers.
 
-Those contributions are combined with `max()`, not layered alpha multiplication. In artist terms: the darkest blocker at a point wins. A tree crossing a bar therefore remains one physical shadow on the wall, rather than two transparent black drawings piled together. This blocker composition is applied to the opening **once**, before both the core and soft versions of the light are created.
+Those contributions are combined with `max()`, not layered alpha multiplication. In artist terms: the darkest blocker at a point wins. A branch crossing a bar therefore remains one physical shadow on the wall, rather than two transparent black drawings piled together. This blocker composition is applied to the opening **once**, before both the core and soft versions of the light are created.
 
-## 4. Tree and leaf movement
+## 4. Branch and leaf movement
 
 The PNG artwork remains separate source material in `public/feelings/window 01/`.
 
 | Asset | Current use |
 | --- | --- |
 | `sunlightv2.png` | Window-shaped light opening and bar/frame blocker map. |
-| `tree.png` | Soft tree trunk and branch blocker. It is pre-blurred by 2.65px and drawn at 82% alpha before entering WebGL. |
-| `leave 01.png`–`leave 07.png` | Moving foliage blockers. Four sit in the foreground group; the rest sit behind it for small depth differences. |
+| `new_scene/branch_01.png`–`branch_05.png` | Five branch layers, pivoted together from the upper-right corner of the opening. |
+| `new_scene/leaves_01.png`–`leaves_13.png` | Foliage layers assigned to a parent branch. They inherit that branch's sway, then add a small leaf flutter and are split between back and front depth groups. |
 | `texture.jpg` | Real photographed plaster texture used by both wall and light treatments. |
 | `background.png`, `window panels.png`, `sunlight.png` | Retained original artwork/reference assets; they are not separate live layers in the current render. |
 
-Every leaf has an independent origin, drift speed, horizontal/vertical travel, and slight rotation. A slow shared gust occasionally pushes them further. The leaves are repainted to off-screen canvases at most about 30 times per second, then passed to WebGL as textures. The tree itself has only a tiny shader-side sway so it feels rooted while the foliage responds to wind.
+The five branch layers share an upper-right anchor but each has a distinct slow sway phase. Each leaf layer follows its assigned branch first, then receives only a tiny independent flutter. The complete rig is repainted to off-screen canvases at most about 30 times per second before being passed to WebGL as textures.
 
 ## 5. Material inside the light
 

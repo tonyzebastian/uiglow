@@ -21,20 +21,9 @@
 .header {
   position: absolute;
   z-index: 3;
-  top: clamp(22px, 3vw, 42px);
-  left: clamp(22px, 4vw, 64px);
-  color: #242421;
-  font-family: var(--font-raleway), sans-serif;
-  font-size: 12px;
-  letter-spacing: .02em;
-}
-
-.breadcrumbList {
-  gap: 8px;
-}
-
-.breadcrumbMuted {
-  color: #77766f;
+  top: 0;
+  left: 0;
+  width: 100%;
 }
 
 .stage {

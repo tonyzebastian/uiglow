@@ -24,8 +24,19 @@ const fragmentShader = `
   uniform float u_texture_amount;
   uniform float u_pores_amount;
   uniform float u_room_variation;
-  uniform float u_diagonal_shadow;
   uniform float u_corner_shadow;
+  uniform float u_canopy_enabled;
+  uniform float u_canopy_intensity;
+  uniform float u_canopy_movement;
+  uniform float u_canopy_scale;
+  uniform float u_canopy_horizontal_spread;
+  uniform float u_canopy_vertical_reach;
+  uniform float u_canopy_softness;
+  uniform float u_reflected_flecks_enabled;
+  uniform float u_reflected_flecks_intensity;
+  uniform float u_reflected_flecks_movement;
+  uniform float u_reflected_flecks_size;
+  uniform float u_reflected_flecks_spread;
   varying vec2 v_uv;
 
   float hash(vec2 point) {
@@ -63,6 +74,21 @@ const fragmentShader = `
     float tile = floor(coordinate);
     float local = fract(coordinate);
     return mix(local, 1.0 - local, mod(tile, 2.0));
+  }
+
+  // Small, broken pools of bounced daylight. They are intentionally sparse:
+  // a reflection should feel like a secondary path of light, never a second
+  // window projected over the whole wall.
+  float reflectedFleck(vec2 point, vec2 centre, vec2 radius, float phase, float time) {
+    vec2 local = (point - centre) / radius;
+    vec2 warp = vec2(
+      fbm(point * 4.2 + vec2(phase, time)) - .5,
+      fbm(point * 5.1 + vec2(time * .72, phase + 3.0)) - .5
+    );
+    local += warp * .34;
+    float pool = exp(-dot(local, local) * 3.1);
+    float breakup = smoothstep(.42, .69, fbm(point * 10.0 + vec2(phase, time * .55)));
+    return pool * mix(.46, 1.0, breakup);
   }
 
   void main() {
@@ -116,21 +142,8 @@ const fragmentShader = `
     wall = mix(wall, offWhite, lowBounce * .045 * u_room_variation);
     wall = mix(wall, offWhite, topLeftLift * .19 * u_room_variation);
 
-    // A very broad diagonal occlusion gives the room a real directional
-    // lighting condition. It starts low on the left and dissolves as it rises
-    // toward the right—more like furniture or a neighbouring wall blocking
-    // ambient daylight than a drawn stripe.
-    float diagonalCentre = .035 + lightUv.x * .55;
-    float diagonalDistance = abs(lightUv.y - diagonalCentre);
-    // A wider falloff means it accumulates like ambient occlusion, rather
-    // than ever reading as a distinct diagonal stripe.
-    float diagonalShadow = 1.0 - smoothstep(.04, .54, diagonalDistance);
-    float diagonalBreakup = .76 + (fbm(lightUv * 3.0 + 12.0) - .5) * .24;
-    wall = mix(wall, mineralShade, diagonalShadow * diagonalBreakup * .20 * u_diagonal_shadow);
-
-    // The lower-right corner receives less of the room's bounced daylight.
-    // It is deliberately broad so it feels like a corner falling away, not a
-    // painted vignette.
+    // The lower-right corner falls away from the room's bounced daylight. It
+    // remains broad enough to read as spatial depth, not a vignette.
     float lowerRightOcclusion = exp(-dot(lightUv - vec2(1.58, .08), lightUv - vec2(1.58, .08)) * 4.4);
     wall = mix(wall, deepShadow, lowerRightOcclusion * .25 * u_corner_shadow);
 
@@ -172,6 +185,77 @@ const fragmentShader = `
     // Final neutral exposure filter, applied after every other wall treatment.
     wall *= u_exposure;
 
+    // A second, broad daylight source lives across the wall rather than in
+    // the window projection. It is deliberately abstract: overlapping noise
+    // thresholds imply a moving canopy without becoming a second illustrated
+    // tree. The field begins at the upper-right and dissolves before it can
+    // read as a flat screen overlay.
+    // Move the field on a looping, multi-axis sway. A linear offset was too
+    // easy to read as a static texture at the low default speed; this gives
+    // the canopy a clearly perceptible but still unhurried breeze motion.
+    float canopyTime = u_time * (.75 + u_canopy_movement * 1.25) * u_canopy_movement;
+    vec2 canopyUv = vec2(
+      v_uv.x * u_resolution.x / u_resolution.y,
+      v_uv.y
+    );
+    vec2 canopyDrift = vec2(
+      sin(canopyTime) * .13 + sin(canopyTime * .43 + .7) * .045,
+      cos(canopyTime * 1.17 + .4) * .075
+    ) * u_canopy_movement;
+    vec2 canopyWarp = vec2(
+      fbm(canopyUv * .88 + canopyDrift + vec2(7.1, 2.4)),
+      fbm(canopyUv * .88 - canopyDrift * .72 + vec2(1.8, 8.7))
+    ) - .5;
+    vec2 canopyPattern = (canopyUv + canopyWarp * .22) / u_canopy_scale;
+    float canopyClusters = fbm(canopyPattern * 2.05 + canopyDrift * .65);
+    float canopyDetail = fbm(canopyPattern * 5.7 - canopyDrift * 1.2 + 13.0);
+    float canopyShape = canopyClusters * .72 + canopyDetail * .28;
+    float canopyThreshold = mix(.64, .51, u_canopy_softness);
+    float canopyLeaves = smoothstep(
+      canopyThreshold - u_canopy_softness * .13,
+      canopyThreshold + .12,
+      canopyShape
+    );
+    float fromRight = 1.0 - smoothstep(
+      .03,
+      u_canopy_horizontal_spread,
+      1.0 - v_uv.x
+    );
+    float fromTop = 1.0 - smoothstep(
+      .02,
+      u_canopy_vertical_reach,
+      1.0 - v_uv.y
+    );
+    // Keep the field decisively rooted at the upper-right. Raising the
+    // combined falloff prevents the leaf breakup from spreading evenly across
+    // the wall when either coverage dial is opened up.
+    float canopyFalloff = pow(max(0.0, fromRight * fromTop), .72);
+    float canopyShadow = canopyLeaves * canopyFalloff * u_canopy_intensity * u_canopy_enabled;
+    wall *= 1.0 - canopyShadow * .18;
+
+    // Secondary reflected light: five quiet, irregular highlights arranged
+    // around the window reflection. They drift slowly but remain independent
+    // of the main projection and its branch blockers.
+    float fleckTime = u_time * .18 * u_reflected_flecks_movement;
+    vec2 fleckDrift = vec2(sin(fleckTime), cos(fleckTime * .83 + .8)) * .025 * u_reflected_flecks_movement;
+    vec2 reflectionOrigin = vec2(1.02, .66);
+    // Upper-left: tall vertical glint. Centre-left and lower-middle: horizontal glints.
+    vec2 fleckA = mix(reflectionOrigin, vec2(.43, .74), u_reflected_flecks_spread) + fleckDrift;
+    vec2 fleckB = mix(reflectionOrigin, vec2(.42, .50), u_reflected_flecks_spread) - fleckDrift * .72;
+    vec2 fleckC = mix(reflectionOrigin, vec2(.68, .28), u_reflected_flecks_spread) + fleckDrift * vec2(.45, -.6);
+    vec2 fleckD = mix(reflectionOrigin, vec2(.65, .76), u_reflected_flecks_spread) - fleckDrift * vec2(.48, .35);
+    vec2 fleckE = mix(reflectionOrigin, vec2(.51, .34), u_reflected_flecks_spread) + fleckDrift * vec2(.7, -.3);
+    float reflectedLight =
+      reflectedFleck(lightUv, fleckA, vec2(.038, .13) * u_reflected_flecks_size, 1.4, fleckTime) +
+      reflectedFleck(lightUv, fleckB, vec2(.12, .036) * u_reflected_flecks_size, 3.8, fleckTime) +
+      reflectedFleck(lightUv, fleckC, vec2(.11, .038) * u_reflected_flecks_size, 6.2, fleckTime) +
+      reflectedFleck(lightUv, fleckD, vec2(.09, .03) * u_reflected_flecks_size, 8.6, fleckTime) +
+      reflectedFleck(lightUv, fleckE, vec2(.075, .026) * u_reflected_flecks_size, 11.4, fleckTime);
+    reflectedLight = clamp(reflectedLight, 0.0, 1.0) * u_reflected_flecks_intensity * u_reflected_flecks_enabled;
+    vec3 reflectedColour = vec3(1.0, .95, .78);
+    vec3 screenedReflection = 1.0 - (1.0 - wall) * (1.0 - reflectedColour);
+    wall = mix(wall, screenedReflection, reflectedLight * .42);
+
     gl_FragColor = vec4(wall, 1.0);
   }
 `;
@@ -190,13 +274,23 @@ function createShader(gl, type, source) {
   return shader;
 }
 
-export default function WallBackground({ controls }) {
+export default function WallBackground({ controls, canopyControls, reflectedFlecksControls }) {
   const canvasRef = useRef(null);
   const controlsRef = useRef(controls);
+  const canopyControlsRef = useRef(canopyControls);
+  const reflectedFlecksControlsRef = useRef(reflectedFlecksControls);
 
   useEffect(() => {
     controlsRef.current = controls;
   }, [controls]);
+
+  useEffect(() => {
+    canopyControlsRef.current = canopyControls;
+  }, [canopyControls]);
+
+  useEffect(() => {
+    reflectedFlecksControlsRef.current = reflectedFlecksControls;
+  }, [reflectedFlecksControls]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -244,8 +338,19 @@ export default function WallBackground({ controls }) {
       const textureAmountLocation = gl.getUniformLocation(program, "u_texture_amount");
       const poresAmountLocation = gl.getUniformLocation(program, "u_pores_amount");
       const roomVariationLocation = gl.getUniformLocation(program, "u_room_variation");
-      const diagonalShadowLocation = gl.getUniformLocation(program, "u_diagonal_shadow");
       const cornerShadowLocation = gl.getUniformLocation(program, "u_corner_shadow");
+      const canopyEnabledLocation = gl.getUniformLocation(program, "u_canopy_enabled");
+      const canopyIntensityLocation = gl.getUniformLocation(program, "u_canopy_intensity");
+      const canopyMovementLocation = gl.getUniformLocation(program, "u_canopy_movement");
+      const canopyScaleLocation = gl.getUniformLocation(program, "u_canopy_scale");
+      const canopyHorizontalSpreadLocation = gl.getUniformLocation(program, "u_canopy_horizontal_spread");
+      const canopyVerticalReachLocation = gl.getUniformLocation(program, "u_canopy_vertical_reach");
+      const canopySoftnessLocation = gl.getUniformLocation(program, "u_canopy_softness");
+      const reflectedFlecksEnabledLocation = gl.getUniformLocation(program, "u_reflected_flecks_enabled");
+      const reflectedFlecksIntensityLocation = gl.getUniformLocation(program, "u_reflected_flecks_intensity");
+      const reflectedFlecksMovementLocation = gl.getUniformLocation(program, "u_reflected_flecks_movement");
+      const reflectedFlecksSizeLocation = gl.getUniformLocation(program, "u_reflected_flecks_size");
+      const reflectedFlecksSpreadLocation = gl.getUniformLocation(program, "u_reflected_flecks_spread");
 
       wallTexture = gl.createTexture();
       gl.activeTexture(gl.TEXTURE0);
@@ -307,8 +412,21 @@ export default function WallBackground({ controls }) {
         gl.uniform1f(textureAmountLocation, current.texture);
         gl.uniform1f(poresAmountLocation, current.pores);
         gl.uniform1f(roomVariationLocation, current.roomVariation);
-        gl.uniform1f(diagonalShadowLocation, current.diagonalShadow);
         gl.uniform1f(cornerShadowLocation, current.cornerShadow);
+        const canopy = canopyControlsRef.current;
+        gl.uniform1f(canopyEnabledLocation, canopy.enabled ? 1 : 0);
+        gl.uniform1f(canopyIntensityLocation, canopy.intensity);
+        gl.uniform1f(canopyMovementLocation, canopy.movement);
+        gl.uniform1f(canopyScaleLocation, canopy.scale);
+        gl.uniform1f(canopyHorizontalSpreadLocation, canopy.horizontalSpread);
+        gl.uniform1f(canopyVerticalReachLocation, canopy.verticalReach);
+        gl.uniform1f(canopySoftnessLocation, canopy.softness);
+        const reflectedFlecks = reflectedFlecksControlsRef.current;
+        gl.uniform1f(reflectedFlecksEnabledLocation, reflectedFlecks.enabled ? 1 : 0);
+        gl.uniform1f(reflectedFlecksIntensityLocation, reflectedFlecks.intensity);
+        gl.uniform1f(reflectedFlecksMovementLocation, reflectedFlecks.movement);
+        gl.uniform1f(reflectedFlecksSizeLocation, reflectedFlecks.size);
+        gl.uniform1f(reflectedFlecksSpreadLocation, reflectedFlecks.spread);
         gl.uniform1f(timeLocation, (now - start) / 1000);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         animationFrame = requestAnimationFrame(render);
