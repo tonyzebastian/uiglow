@@ -551,7 +551,7 @@ export default function WebGLBackground({ controls }) {
         return image;
       });
       const leafSources = Array.from(
-        { length: 13 },
+        { length: 16 },
         (_, index) => `leaves_${String(index + 1).padStart(2, "0")}.png`
       );
       leafImages = leafSources.map((source) => {
@@ -571,8 +571,8 @@ export default function WebGLBackground({ controls }) {
         { speed: .43, sway: -.021, phase: 4.4 },
         { speed: .51, sway: .019, phase: 5.6 },
       ];
-      const leafBranchIndexes = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4];
-      const foregroundLeafIndexes = new Set([1, 3, 5, 7, 9, 11]);
+      const leafBranchIndexes = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 2, 4];
+      const foregroundLeafIndexes = new Set([1, 3, 5, 7, 9, 11, 13, 14]);
 
       const paintBlackBlocker = (source, alpha, offsetX = 0, offsetY = 0) => {
         if (!source || !blockerContext || !lightCoreContext) return;
