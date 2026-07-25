@@ -1,4 +1,4 @@
-import VisionReveal from "@/components/vision-reveal/VisionReveal";
+import VisionReveal from "@/features/vision-reveal/VisionReveal";
 
 export default function VisionRevealPage() {
   return <VisionReveal />;

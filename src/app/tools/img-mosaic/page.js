@@ -1,5 +1,5 @@
 import MosaicPhotoEffect from './MosaicPhotoEffect';
-import AppHeader from "@/components/core/AppHeader";
+import AppHeader from "@/components/shared/AppHeader";
 
 
 export const metadata = {

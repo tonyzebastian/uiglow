@@ -1,4 +1,4 @@
-import AppHeader from '@/components/core/AppHeader';
+import AppHeader from '@/components/shared/AppHeader';
 import WaterReflectionStudio from './WaterReflectionStudio';
 
 export const metadata = {

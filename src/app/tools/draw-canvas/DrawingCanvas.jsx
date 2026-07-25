@@ -79,6 +79,7 @@ const DrawingCanvas = forwardRef(({
   const [uploadedImages, setUploadedImages] = useState([]);
   const [currentColor, setCurrentColor] = useState(strokeColor);
   const [currentStrokeWidth, setCurrentStrokeWidth] = useState(strokeWidth);
+  const [currentImageSize, setCurrentImageSize] = useState(imageSize);
   const [showDottedPatternState, setShowDottedPatternState] = useState(showDottedPattern);
   const [showImagesState, setShowImagesState] = useState(showImages);
   const [saveCounter, setSaveCounter] = useState(1);
@@ -203,8 +204,8 @@ const DrawingCanvas = forwardRef(({
       img.onload = () => {
         if (!isMounted) return;
 
-        // Calculate scaled dimensions based on imageSize
-        const scale = Math.min(imageSize / img.width, imageSize / img.height);
+        // Calculate scaled dimensions based on the toolbar image-size control.
+        const scale = Math.min(currentImageSize / img.width, currentImageSize / img.height);
         const imgWidth = img.width * scale;
         const imgHeight = img.height * scale;
 
@@ -221,12 +222,31 @@ const DrawingCanvas = forwardRef(({
           drawBackground();
 
           const numImages = loadedImages.length;
+          const imagesData = [];
+
+          if (numImages === 1) {
+            const { img } = loadedImages[0];
+            // A single image is a canvas background: preserve its aspect ratio
+            // while covering the full drawing area, cropping only the excess.
+            const coverScale = Math.max(canvas.width / img.width, canvas.height / img.height)
+              * (currentImageSize / imageSize);
+            const scaledImgWidth = img.width * coverScale;
+            const scaledImgHeight = img.height * coverScale;
+            const x = (canvas.width - scaledImgWidth) / 2;
+            const y = (canvas.height - scaledImgHeight) / 2;
+
+            drawSingleImage(ctx, img, x, y, scaledImgWidth, scaledImgHeight);
+            imagesData.push({ img, x, y, width: scaledImgWidth, height: scaledImgHeight });
+            setBackgroundImagesData(imagesData);
+            return;
+          }
+
           const cols = Math.min(numImages, MAX_GRID_COLUMNS);
           const rows = Math.ceil(numImages / cols);
 
           // Calculate grid dimensions
-          const gridWidth = (imageSize * cols) + (imageGap * (cols - 1));
-          const gridHeight = (imageSize * rows) + (imageGap * (rows - 1));
+          const gridWidth = (currentImageSize * cols) + (imageGap * (cols - 1));
+          const gridHeight = (currentImageSize * rows) + (imageGap * (rows - 1));
 
           // Calculate available canvas space (with padding for borders)
           const canvasPadding = imagePadding * 4; // Extra padding from edges
@@ -240,7 +260,7 @@ const DrawingCanvas = forwardRef(({
           }
 
           // Apply scale to all image dimensions
-          const scaledImageSize = imageSize * gridScale;
+          const scaledImageSize = currentImageSize * gridScale;
           const scaledGridWidth = gridWidth * gridScale;
           const scaledGridHeight = gridHeight * gridScale;
 
@@ -249,7 +269,6 @@ const DrawingCanvas = forwardRef(({
           const startY = (canvas.height - scaledGridHeight) / 2;
 
           // Draw each image in grid
-          const imagesData = [];
           loadedImages.forEach((imgData, idx) => {
             const col = idx % cols;
             const row = Math.floor(idx / cols);
@@ -293,7 +312,7 @@ const DrawingCanvas = forwardRef(({
     return () => {
       isMounted = false;
     };
-  }, [urls, uploadedImages, imageSize, imagePadding, showImageShadow, imageGap, showImagesState, drawBackground, drawSingleImage]);
+  }, [urls, uploadedImages, currentImageSize, imagePadding, showImageShadow, imageGap, showImagesState, drawBackground, drawSingleImage]);
 
   // Mouse event handlers
   const startDrawing = useCallback((e) => {
@@ -426,6 +445,8 @@ const DrawingCanvas = forwardRef(({
             onColorChange={setCurrentColor}
             strokeWidth={currentStrokeWidth}
             onStrokeWidthChange={setCurrentStrokeWidth}
+            imageSize={currentImageSize}
+            onImageSizeChange={setCurrentImageSize}
             showImages={showImagesState}
             onShowImagesChange={setShowImagesState}
             showGrid={showDottedPatternState}

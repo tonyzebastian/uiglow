@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { DialRoot, DialStore, useDialKit } from "dialkit";
-import AppHeader from "@/components/core/AppHeader";
+import AppHeader from "@/components/shared/AppHeader";
 import WebGLBackground from "./WebGLBackground";
 import WallBackground from "./WallBackground";
 import styles from "./FeelingsScene.module.css";

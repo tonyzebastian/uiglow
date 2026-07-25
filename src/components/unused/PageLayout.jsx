@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import AppHeader from '@/components/core/AppHeader';
+import AppHeader from '@/components/shared/AppHeader';
 
 const PageLayout = ({ children }) => {
   return (

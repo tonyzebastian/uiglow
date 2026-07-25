@@ -1,4 +1,4 @@
-import LinkLibrary from "@/components/link-library/LinkLibrary";
+import LinkLibrary from "@/features/link-library/LinkLibrary";
 
 export const metadata = {
   title: "Link library | UiGlow",

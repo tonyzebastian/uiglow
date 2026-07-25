@@ -87,30 +87,20 @@ images: { unoptimized: true }  // Standard <img> tags (no optimization)
 
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── layout.js                 # Root layout (fonts, ErrorBoundary)
-│   ├── page.js                   # Home - draggable canvas
-│   ├── experiences/              # Interactive demos (clock, fish, cars)
-│   ├── svg-animations/           # SVG animations (coinflip, comet, unlock)
-│   ├── ui-interactions/          # UI component demos (image effects, chat)
-│   └── tools/                    # Standalone tools (mosaic, draw-canvas)
+├── app/                          # Next.js App Router: routes, layouts, metadata
 ├── components/
-│   ├── Logo.js                   # Consolidated logo (variant: full/mini)
-│   ├── ErrorBoundary.jsx         # Global error handling
-│   ├── core/                     # App components (AppHeader, SidebarNav)
-│   ├── canvas/                   # Canvas system (DraggableCanvas, CardContent)
-│   ├── ui/                       # Shadcn/ui components
-│   ├── backgrounds/              # Visual effects (GradientBlob)
-│   ├── effects/                  # Animation effects (BreathingText)
-│   ├── previews/                 # Preview components
-│   └── unused/                   # Deprecated components (kept for reference)
-├── data/
-│   └── canvasData.js             # Canvas items (uses factory functions)
+│   ├── shared/                   # App-wide UI (header, dock, logo, boundary)
+│   ├── ui/                       # shadcn primitives
+│   ├── archive/                  # Inactive reference components
+│   └── unused/                   # Deprecated components kept unchanged
+├── features/                     # Feature-owned UI and rendering code
+│   ├── gallery/
+│   ├── link-library/
+│   ├── pond-lab/
+│   ├── vision-reveal/
+│   └── vision-scene/
 ├── hooks/
-│   ├── useTheme.jsx              # Theme management hook
-│   └── use-mobile.jsx            # Mobile detection hook
-└── lib/
-    └── utils.js                  # Utility functions (cn, etc.)
+└── lib/                          # Shared framework-agnostic utilities
 ```
 
 ---
@@ -190,7 +180,7 @@ Interactive infinite canvas showcasing all projects:
 
 ## Notable Patterns
 
-### Logo Component (`components/Logo.js`)
+### Logo Component (`components/shared/UIGlowLogo.jsx`)
 Single component with variants:
 ```javascript
 <UIGlowLogo />               // Full logo (default)
@@ -206,29 +196,20 @@ const { isDark, toggleTheme } = useTheme();
 - localStorage persistence
 - System preference detection
 
-### Canvas Factory Functions (`data/canvasData.js`)
-DRY approach to canvas items:
+### Gallery Data (`features/gallery/galleryData.js`)
+The home gallery keeps its presentation data separate from its layout:
 ```javascript
-createImageCard('fish', {
+imageCard('fish', {
   content: '/thumbnails/fish.gif',
   title: 'A School of Fish',
-  position: { x: -120, y: 75 },
   size: { width: 280, height: 200 },
-  rotation: -2,
   link: '/experiences/fish',
 });
 ```
 
-**Factory Functions:**
-- `createImageCard()` - Image items
-- `createVideoCard()` - Video items
-- `createComponentCard()` - React component items
-- `createGroupTitle()` - Section titles
-- `createArrow()` - Visual arrows
-
-**Common Props:**
-- Auto-applied: `clickable`, `shadow`, `background`, `padding: 4`, `openInNewTab: true`
-- Custom: `position`, `size`, `rotation`, `hoverRotation`, `link`, `backgroundColor`
+- `imageCard()`, `videoCard()`, and `componentCard()` define preview content.
+- `MasonryGallery` balances cards by declared aspect ratio.
+- Feature previews are dynamically imported by `GalleryContent`.
 
 ### AppHeader Component
 Two variants via `variant` prop:
@@ -238,49 +219,36 @@ Two variants via `variant` prop:
 ### Error Boundary
 Locations:
 1. Root layout (`app/layout.js`) - catches all errors
-2. Canvas components (`CardContent.jsx`) - isolates dynamic component failures
+2. Gallery preview components - isolates dynamic component failures
 
 Shows user-friendly error UI with reload button (dev mode shows error details).
 
 ---
 
-## Canvas System Deep Dive
-
-### Architecture
-- **DraggableCanvas.jsx**: Pan/zoom, boundaries, debounced resize, responsive scaling
-- **DraggableItem.jsx**: Individual items with drag, hover effects
-- **CardContent.jsx**: Content renderer (image/video/component) with Suspense + ErrorBoundary
-- **canvasData.js**: Configuration with factory functions
+## Gallery System
 
 ### Content Types
 - `image` - Standard `<img>` tags (Cloudflare Pages compatible)
 - `video` - Autoplay, muted, loop, playsInline
 - `component` - Dynamic import with Suspense fallback
-- `text` - Centered text
-- `group-title` - Section headers
-- `arrow` - Hand-drawn SVG arrows
 
-### Adding New Canvas Items
-1. Use factory function in `canvasData.js`:
+### Adding New Gallery Items
+1. Add an item to `features/gallery/galleryData.js`:
    ```javascript
-   createImageCard('my-item', {
+   imageCard('my-item', {
      content: '/thumbnails/my-item.gif',
      title: 'My Item',
-     position: { x: 100, y: 200 },
      size: { width: 240, height: 170 },
-     rotation: 2,
      link: '/my-route',
    })
    ```
 2. Add thumbnail to `public/thumbnails/`
-3. For components: Add to `componentMap` in `CardContent.jsx`
+3. For component previews: add the dynamic import to `features/gallery/GalleryContent.jsx`
 
 ### Performance Features
-- **Debounced resize**: 150ms (avoids 500+ calls during resize)
+- **Responsive masonry**: recalculates columns on viewport resize
 - **Suspense**: Loading skeleton for dynamic components
-- **Error isolation**: Failed components don't crash canvas
-- **Drag threshold**: 3px to differentiate click from drag
-- **Viewport positioning**: Centers at 500x400, scales 60-120%
+- **Error isolation**: Failed previews do not crash the gallery
 
 ---
 
@@ -289,14 +257,14 @@ Shows user-friendly error UI with reload button (dev mode shows error details).
 ### Add a New Experience
 1. Create directory: `src/app/experiences/my-experience/`
 2. Add `page.js` and component files
-3. Add to `navigation-config.js` (if using sidebar)
-4. Add canvas item to `canvasData.js` using factory function
+3. Add to `navigation-config.js` only if it is part of an existing navigation group
+4. Add a gallery item in `features/gallery/galleryData.js`
 5. Add thumbnail to `public/thumbnails/`
 
 ### Add a New Tool
 1. Create: `src/app/tools/my-tool/page.js`
 2. Use `AppHeader` with `variant="secondary"` and custom title
-3. Add canvas item (tools group) to `canvasData.js`
+3. Add a gallery item in `features/gallery/galleryData.js`
 4. Tools don't need navigation config (standalone)
 
 ### Modify Theme

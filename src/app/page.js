@@ -1,5 +1,5 @@
-import MasonryGallery from '@/components/gallery/MasonryGallery';
-import { galleryCards } from '@/data/galleryData';
+import MasonryGallery from '@/features/gallery/MasonryGallery';
+import { galleryCards } from '@/features/gallery/galleryData';
 
 export default function HomePage() {
   return (

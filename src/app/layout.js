@@ -1,8 +1,8 @@
 import { Merriweather, Raleway } from "next/font/google";
 import "./globals.css";
 import "dialkit/styles.css";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import DockNavigation from "@/components/DockNavigation";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import DockNavigation from "@/components/shared/DockNavigation";
 
 const merriweather = Merriweather({
   variable: "--font-merriweather",
