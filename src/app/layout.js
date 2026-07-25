@@ -45,7 +45,7 @@ export const metadata = {
     creator: '@tonyzebastian',
     title: 'Play ✦ Tony',
     description: 'A visual product designer | Love to code | always tinkering with a side project',
-    image: 'https://play.tonyzeb.com/preview.png',
+    image: 'https://play.tonyzeb.com/thumbnails/preview.png',
     imageAlt: 'Play ✦ Tony - UI Experiments & Interactions',
   },
   openGraph: {
@@ -54,7 +54,7 @@ export const metadata = {
     url: 'https://play.tonyzeb.com/',
     siteName: 'Play ✦ Tony',
     images: [{
-      url: 'https://play.tonyzeb.com/preview.png',
+      url: 'https://play.tonyzeb.com/thumbnails/preview.png',
       alt: 'Play ✦ Tony - UI Experiments & Interactions',
       width: 1200,
       height: 630,

@@ -20,7 +20,7 @@ export const metadata = {
     creator: '@tonyzebastian',
     title: 'Image Mosaic ✦ Tony',
     description: 'Stunning photo mosaic effects with customizable grid patterns',
-    image: 'https://play.tonyzeb.com/mosaic_preview.jpg',
+    image: 'https://play.tonyzeb.com/thumbnails/mosaic_preview.jpg',
     imageAlt: 'Play ✦ Tony - UI Experiments & Interactions',
   },
   openGraph: {
@@ -29,7 +29,7 @@ export const metadata = {
     url: 'https://play.tonyzeb.com/',
     siteName: 'Play ✦ Tony',
     images: [{
-      url: 'https://play.tonyzeb.com/mosaic_preview.jpg',
+      url: 'https://play.tonyzeb.com/thumbnails/mosaic_preview.jpg',
       alt: 'Play ✦ Tony - UI Experiments & Interactions',
       width: 1200,
       height: 630,

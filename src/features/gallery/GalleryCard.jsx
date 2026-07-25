@@ -57,6 +57,7 @@ function Preview({ card }) {
               component={card.component}
               componentProps={card.componentProps}
               title={card.title}
+              objectPosition={card.objectPosition}
             />
           </div>
           {card.interactive && card.link && (

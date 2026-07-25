@@ -1,18 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image as ImageIcon, RotateCcw, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DialRoot, useDialKitController } from 'dialkit';
 
-const DEFAULT_IMAGE = '/profile.jpg';
+const DEFAULT_IMAGE = '/thumbnails/water_reflection.jpg';
 
 const PALETTES = {
   pool: {
@@ -34,18 +25,66 @@ const PALETTES = {
 };
 
 const DEFAULTS = {
-  displacement: 50,
-  bands: 62,
-  roughness: 30,
-  contrast: 34,
+  displacement: 8,
+  bands: 140,
+  roughness: 75,
+  contrast: 55,
   midpoint: 50,
-  edgeInk: 18,
+  edgeInk: 56,
   screen: 'halftone',
-  screenScale: 3,
-  texture: 42,
-  inkBleed: 18,
-  paperGrain: 32,
-  registration: 10,
+  screenScale: 5.9,
+  texture: 85,
+  inkBleed: 61,
+  paperGrain: 71,
+  registration: 54,
+  ambientStrength: 0,
+  ambientSpeed: 0,
+};
+
+const DIAL_CONFIG = {
+  image: {
+    removePhoto: { type: 'action', label: 'Remove photo' },
+    chooseImage: { type: 'action', label: 'Choose image' },
+  },
+  waterShape: {
+    displacement: [DEFAULTS.displacement, 0, 100],
+    bandDetail: [DEFAULTS.bands, 22, 150],
+    edgeRoughness: [DEFAULTS.roughness, 0, 100],
+    ambientStrength: [DEFAULTS.ambientStrength, 0, 300],
+    ambientSpeed: [DEFAULTS.ambientSpeed, 0, 300],
+  },
+  inkSeparation: {
+    contrast: [DEFAULTS.contrast, 0, 100],
+    midtoneBalance: [DEFAULTS.midpoint, 0, 100],
+    edgeInk: [DEFAULTS.edgeInk, 0, 100],
+    inkBleed: [DEFAULTS.inkBleed, 0, 100],
+  },
+  printScreen: {
+    texture: {
+      type: 'select',
+      options: [
+        { value: 'stipple', label: 'Stippled ink' },
+        { value: 'halftone', label: 'Halftone dots' },
+        { value: 'clean', label: 'Clean color plates' },
+      ],
+      default: DEFAULTS.screen,
+    },
+    screenSize: [DEFAULTS.screenScale, 2, 12],
+    dryInk: [DEFAULTS.texture, 0, 100],
+    paperGrain: [DEFAULTS.paperGrain, 0, 100],
+    plateOffset: [DEFAULTS.registration, 0, 100],
+  },
+  palette: {
+    preset: {
+      type: 'select',
+      options: Object.entries(PALETTES).map(([value, palette]) => ({ value, label: palette.label })),
+      default: 'rose',
+    },
+    inkOne: PALETTES.rose.colors[0],
+    inkTwo: PALETTES.rose.colors[1],
+    inkThree: PALETTES.rose.colors[2],
+    inkFour: PALETTES.rose.colors[3],
+  },
 };
 
 const VERTEX_SHADER = `
@@ -77,6 +116,9 @@ const FRAGMENT_SHADER = `
   uniform float uInkBleed;
   uniform float uPaperGrain;
   uniform float uRegistration;
+  uniform float uTime;
+  uniform float uAmbientStrength;
+  uniform float uAmbientSpeed;
   uniform vec3 uColor0;
   uniform vec3 uColor1;
   uniform vec3 uColor2;
@@ -143,14 +185,24 @@ const FRAGMENT_SHADER = `
 
   void main() {
     vec2 displayUv = vUv;
+    float currentTime = uTime * mix(0.0, 2.0, uAmbientSpeed);
 
     // Each horizontal band receives a stable, irregular offset. This creates
     // the broken silhouette edges seen in printed water reflections.
     float bandCount = mix(22.0, 150.0, uBands);
     float bandId = floor(displayUv.y * bandCount);
     float rowShift = hash(vec2(bandId, 8.71)) * 2.0 - 1.0;
-    float rowWave = sin(displayUv.y * bandCount * 6.28318 + hash(vec2(bandId, 2.17)) * 6.28318);
-    float broadWave = sin(displayUv.y * 31.0 + fbm(vec2(displayUv.y * 6.0, 3.0)) * 5.0);
+    float rowTempo = mix(0.11, 0.19, hash(vec2(bandId, 5.31)));
+    float rowWave = sin(
+      displayUv.y * bandCount * 6.28318 +
+      hash(vec2(bandId, 2.17)) * 6.28318 +
+      currentTime * rowTempo
+    );
+    float broadWave = sin(
+      displayUv.y * 31.0 +
+      fbm(vec2(displayUv.y * 6.0 + currentTime * 0.018, 3.0)) * 5.0 -
+      currentTime * 0.14
+    );
     float brokenEdge = (hash(vec2(floor(displayUv.x * 15.0), bandId)) - 0.5) * uRoughness;
     float horizontalShift = (
       rowShift * 0.66 +
@@ -158,6 +210,16 @@ const FRAGMENT_SHADER = `
       broadWave * 0.14 +
       brokenEdge * 0.13
     ) * uDisplacement * 0.115;
+
+    // A restrained ambient current keeps the print alive without making it
+    // read like looping footage. Adjacent horizontal regions drift at
+    // slightly different rates and amplitudes.
+    float ambientCurrent = (
+      sin(displayUv.y * 12.0 + currentTime * 0.22) * 0.0045 +
+      sin(displayUv.y * 27.0 - currentTime * 0.13) * 0.0025
+    ) * (0.45 + uDisplacement * 0.55) * uAmbientStrength;
+
+    horizontalShift += ambientCurrent;
 
     vec2 imageUv = coverUv(clamp(displayUv + vec2(horizontalShift, 0.0), 0.001, 0.999));
     vec2 pixel = 1.0 / max(uTextureSize, vec2(1.0));
@@ -254,34 +316,6 @@ function createProgram(gl) {
   return program;
 }
 
-function ControlSlider({ label, value, min = 0, max = 100, step = 1, suffix = '', onChange }) {
-  return (
-    <label className="grid gap-2">
-      <span className="flex items-center justify-between gap-4 text-xs font-medium text-slate-700 dark:text-slate-300">
-        <span>{label}</span>
-        <output className="font-normal tabular-nums text-slate-500 dark:text-slate-400">{value}{suffix}</output>
-      </span>
-      <Slider
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        onValueChange={([next]) => onChange(next)}
-        aria-label={label}
-      />
-    </label>
-  );
-}
-
-function ControlGroup({ eyebrow, children }) {
-  return (
-    <section className="border-b border-slate-200 p-4 last:border-b-0 dark:border-slate-800">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{eyebrow}</p>
-      <div className="mt-4 grid gap-5">{children}</div>
-    </section>
-  );
-}
-
 export default function WaterReflectionStudio() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -289,38 +323,20 @@ export default function WaterReflectionStudio() {
   const runtimeRef = useRef(null);
   const sourceRef = useRef(null);
   const configRef = useRef(DEFAULTS);
-  const colorsRef = useRef(PALETTES.pool.colors);
+  const colorsRef = useRef(PALETTES.rose.colors);
+  const previousPresetRef = useRef('rose');
 
-  const [config, setConfig] = useState(DEFAULTS);
-  const [colors, setColors] = useState(PALETTES.pool.colors);
-  const [paletteName, setPaletteName] = useState('pool');
-  const [sourceMode, setSourceMode] = useState('portrait');
   const [imageUrl, setImageUrl] = useState(DEFAULT_IMAGE);
-  const [imageName, setImageName] = useState('Portrait study');
+  const [hasCustomImage, setHasCustomImage] = useState(false);
   const [rendererError, setRendererError] = useState('');
 
   const requestRender = useCallback(() => {
     window.requestAnimationFrame(() => runtimeRef.current?.render());
   }, []);
 
-  useEffect(() => {
-    configRef.current = config;
-    requestRender();
-  }, [config, requestRender]);
-
-  useEffect(() => {
-    colorsRef.current = colors;
-    requestRender();
-  }, [colors, requestRender]);
-
-  const updateConfig = useCallback((key, value) => {
-    setConfig((current) => ({ ...current, [key]: value }));
-  }, []);
-
-  const usePortrait = useCallback(() => {
-    setSourceMode('portrait');
+  const removePhoto = useCallback(() => {
     setImageUrl(DEFAULT_IMAGE);
-    setImageName('Portrait study');
+    setHasCustomImage(false);
   }, []);
 
   const handleUpload = useCallback((event) => {
@@ -329,11 +345,70 @@ export default function WaterReflectionStudio() {
     if (uploadedUrlRef.current) URL.revokeObjectURL(uploadedUrlRef.current);
     const url = URL.createObjectURL(file);
     uploadedUrlRef.current = url;
-    setSourceMode('upload');
     setImageUrl(url);
-    setImageName(file.name);
+    setHasCustomImage(true);
     event.target.value = '';
   }, []);
+
+  const handleDialAction = useCallback((path) => {
+    if (path === 'image.removePhoto') removePhoto();
+    if (path === 'image.chooseImage') fileInputRef.current?.click();
+  }, [removePhoto]);
+
+  const dialConfig = useMemo(() => ({
+    ...DIAL_CONFIG,
+    image: hasCustomImage
+      ? DIAL_CONFIG.image
+      : { chooseImage: DIAL_CONFIG.image.chooseImage },
+  }), [hasCustomImage]);
+
+  const dial = useDialKitController('Water reflection', dialConfig, {
+    id: 'water-reflection',
+    onAction: handleDialAction,
+  });
+
+  const dialValues = dial.values;
+
+  useEffect(() => {
+    const { waterShape, inkSeparation, printScreen } = dialValues;
+    configRef.current = {
+      displacement: waterShape.displacement,
+      bands: waterShape.bandDetail,
+      roughness: waterShape.edgeRoughness,
+      ambientStrength: waterShape.ambientStrength,
+      ambientSpeed: waterShape.ambientSpeed,
+      contrast: inkSeparation.contrast,
+      midpoint: inkSeparation.midtoneBalance,
+      edgeInk: inkSeparation.edgeInk,
+      screen: printScreen.texture,
+      screenScale: printScreen.screenSize,
+      texture: printScreen.dryInk,
+      inkBleed: inkSeparation.inkBleed,
+      paperGrain: printScreen.paperGrain,
+      registration: printScreen.plateOffset,
+    };
+    requestRender();
+  }, [dialValues, requestRender]);
+
+  useEffect(() => {
+    const { palette } = dialValues;
+    if (palette.preset !== previousPresetRef.current) {
+      previousPresetRef.current = palette.preset;
+      const preset = PALETTES[palette.preset];
+      if (preset) {
+        dial.setValues({
+          palette: {
+            inkOne: preset.colors[0],
+            inkTwo: preset.colors[1],
+            inkThree: preset.colors[2],
+            inkFour: preset.colors[3],
+          },
+        });
+      }
+    }
+    colorsRef.current = [palette.inkOne, palette.inkTwo, palette.inkThree, palette.inkFour];
+    requestRender();
+  }, [dial, dialValues, requestRender]);
 
   useEffect(() => {
     const image = new Image();
@@ -400,13 +475,20 @@ export default function WaterReflectionStudio() {
         inkBleed: uniform('uInkBleed'),
         paperGrain: uniform('uPaperGrain'),
         registration: uniform('uRegistration'),
+        time: uniform('uTime'),
+        ambientStrength: uniform('uAmbientStrength'),
+        ambientSpeed: uniform('uAmbientSpeed'),
         colors: [uniform('uColor0'), uniform('uColor1'), uniform('uColor2'), uniform('uColor3')],
       };
       gl.uniform1i(uniforms.texture, 0);
 
       let textureWidth = 1;
       let textureHeight = 1;
+      let animationFrame = null;
+      let lastRenderedAt = 0;
+      let isVisible = true;
       const screenMap = { stipple: 0, halftone: 1, clean: 2 };
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       const upload = (image) => {
         gl.activeTexture(gl.TEXTURE0);
@@ -416,7 +498,7 @@ export default function WaterReflectionStudio() {
         textureHeight = image.naturalHeight || image.height;
       };
 
-      const render = () => {
+      const render = (now = performance.now()) => {
         const current = configRef.current;
         gl.useProgram(program);
         gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
@@ -433,8 +515,28 @@ export default function WaterReflectionStudio() {
         gl.uniform1f(uniforms.inkBleed, current.inkBleed / 100);
         gl.uniform1f(uniforms.paperGrain, current.paperGrain / 100);
         gl.uniform1f(uniforms.registration, current.registration / 100);
+        gl.uniform1f(uniforms.time, reducedMotion ? 0 : now / 1000);
+        gl.uniform1f(uniforms.ambientStrength, reducedMotion ? 0 : current.ambientStrength / 100);
+        gl.uniform1f(uniforms.ambientSpeed, current.ambientSpeed / 100);
         colorsRef.current.forEach((color, index) => gl.uniform3fv(uniforms.colors[index], hexToRgb(color)));
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+      };
+
+      const scheduleAnimation = () => {
+        if (animationFrame === null && isVisible && !document.hidden && !reducedMotion) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      };
+
+      const animate = (now) => {
+        animationFrame = null;
+        // The water motion is intentionally capped at 30fps; the visual is
+        // grain-heavy and does not benefit from a full-rate render loop.
+        if (now - lastRenderedAt >= 1000 / 30) {
+          lastRenderedAt = now;
+          render(now);
+        }
+        scheduleAnimation();
       };
 
       const resizeObserver = new ResizeObserver(([entry]) => {
@@ -450,12 +552,27 @@ export default function WaterReflectionStudio() {
       });
       resizeObserver.observe(canvas);
 
+      const intersectionObserver = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) scheduleAnimation();
+      }, { threshold: 0.05 });
+      intersectionObserver.observe(canvas);
+
+      const handleVisibilityChange = () => {
+        if (!document.hidden) scheduleAnimation();
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
       runtimeRef.current = { render, upload };
       if (sourceRef.current) upload(sourceRef.current);
       render();
+      scheduleAnimation();
 
       return () => {
         resizeObserver.disconnect();
+        intersectionObserver.disconnect();
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        if (animationFrame !== null) cancelAnimationFrame(animationFrame);
         gl.deleteTexture(texture);
         gl.deleteBuffer(buffer);
         gl.deleteProgram(program);
@@ -471,36 +588,19 @@ export default function WaterReflectionStudio() {
     if (uploadedUrlRef.current) URL.revokeObjectURL(uploadedUrlRef.current);
   }, []);
 
-  const applyPalette = useCallback((name) => {
-    setPaletteName(name);
-    setColors(PALETTES[name].colors);
-  }, []);
-
-  const reset = useCallback(() => {
-    setConfig(DEFAULTS);
-    applyPalette('pool');
-  }, [applyPalette]);
-
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 pb-12 sm:px-6">
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Button type="button" size="sm" variant={sourceMode === 'portrait' ? 'default' : 'outline'} onClick={usePortrait}>
-                <ImageIcon /> Portrait
-              </Button>
-              <Button type="button" size="sm" variant={sourceMode === 'upload' ? 'default' : 'outline'} onClick={() => fileInputRef.current?.click()}>
-                <Upload /> Choose image
-              </Button>
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} hidden />
-            </div>
-            <span className="max-w-[240px] truncate text-xs text-slate-500 dark:text-slate-400">{imageName}</span>
-          </div>
+        <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} hidden />
 
-          <div className="rounded-lg bg-slate-50 p-3 sm:p-6 dark:bg-slate-900">
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-[720px] overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-700 dark:bg-slate-950">
-              <canvas ref={canvasRef} className="block h-full w-full" aria-label="Static illustrated water reflection" />
+          <div>
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+              <canvas
+                ref={canvasRef}
+                className="block h-full w-full"
+                aria-label="Animated illustrated water reflection"
+              />
               {rendererError && (
                 <div className="absolute inset-0 grid place-items-center bg-slate-950 p-8 text-center text-sm text-slate-100">
                   {rendererError}
@@ -509,86 +609,12 @@ export default function WaterReflectionStudio() {
             </div>
           </div>
 
-          <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
-            Static four-ink water reflection
-          </p>
         </section>
 
-        <aside className="overflow-hidden rounded-lg border border-slate-200 bg-white lg:sticky lg:top-4 dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Effect controls</h2>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Adjust the illustration treatment</p>
-            </div>
-            <Button type="button" variant="ghost" size="icon" onClick={reset} title="Reset effect">
-              <RotateCcw />
-              <span className="sr-only">Reset effect</span>
-            </Button>
-          </div>
-
-          <ControlGroup eyebrow="Water shape">
-            <ControlSlider label="Displacement" value={config.displacement} onChange={(value) => updateConfig('displacement', value)} />
-            <ControlSlider label="Band detail" value={config.bands} onChange={(value) => updateConfig('bands', value)} />
-            <ControlSlider label="Edge roughness" value={config.roughness} onChange={(value) => updateConfig('roughness', value)} />
-          </ControlGroup>
-
-          <ControlGroup eyebrow="Ink separation">
-            <ControlSlider label="Contrast" value={config.contrast} onChange={(value) => updateConfig('contrast', value)} />
-            <ControlSlider label="Midtone balance" value={config.midpoint} onChange={(value) => updateConfig('midpoint', value)} />
-            <ControlSlider label="Edge ink" value={config.edgeInk} onChange={(value) => updateConfig('edgeInk', value)} />
-            <ControlSlider label="Ink bleed" value={config.inkBleed} onChange={(value) => updateConfig('inkBleed', value)} />
-          </ControlGroup>
-
-          <ControlGroup eyebrow="Print screen">
-            <label className="grid gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-              <span>Texture</span>
-              <Select value={config.screen} onValueChange={(value) => updateConfig('screen', value)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="stipple">Stippled ink</SelectItem>
-                  <SelectItem value="halftone">Halftone dots</SelectItem>
-                  <SelectItem value="clean">Clean color plates</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <ControlSlider label="Screen size" value={config.screenScale} min={2} max={12} suffix=" px" onChange={(value) => updateConfig('screenScale', value)} />
-            <ControlSlider label="Dry ink" value={config.texture} onChange={(value) => updateConfig('texture', value)} />
-            <ControlSlider label="Paper grain" value={config.paperGrain} onChange={(value) => updateConfig('paperGrain', value)} />
-            <ControlSlider label="Plate offset" value={config.registration} onChange={(value) => updateConfig('registration', value)} />
-          </ControlGroup>
-
-          <ControlGroup eyebrow="Four ink palette">
-            <label className="grid gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-              <span>Preset</span>
-              <Select value={paletteName} onValueChange={applyPalette}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PALETTES).map(([value, palette]) => (
-                    <SelectItem key={value} value={value}>{palette.label}</SelectItem>
-                  ))}
-                  <SelectItem value="custom" disabled>Custom inks</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {colors.map((color, index) => (
-                <label key={`${index}-${color}`} className="relative aspect-square cursor-pointer overflow-hidden rounded-md border border-slate-200 dark:border-slate-700" title={`Ink ${index + 1}`}>
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(event) => {
-                      setPaletteName('custom');
-                      setColors((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item));
-                    }}
-                    aria-label={`Ink color ${index + 1}`}
-                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                  />
-                  <span className="block h-full w-full" style={{ backgroundColor: color }} />
-                </label>
-              ))}
-            </div>
-          </ControlGroup>
+        <aside className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <DialRoot mode="inline" theme="light" />
         </aside>
+
       </div>
     </div>
   );

@@ -16,9 +16,16 @@ const componentMap = {
   VisionScene: dynamic(() => import('@/features/vision-scene/VisionScene')),
 };
 
-function GalleryContent({ contentType, content, component, componentProps, title }) {
+function GalleryContent({ contentType, content, component, componentProps, title, objectPosition }) {
   if (contentType === 'image') {
-    return <img src={content} alt={title} className="h-full w-full object-cover" />;
+    return (
+      <img
+        src={content}
+        alt={title}
+        className="h-full w-full object-cover"
+        style={objectPosition ? { objectPosition } : undefined}
+      />
+    );
   }
 
   if (contentType === 'video') {

@@ -65,9 +65,10 @@ export const galleryCards = [
     openInNewTab: true,
   }),
   imageCard('water-reflection', {
-    content: '/tools/Water.png',
+    content: '/thumbnails/water_reflection_thumbnail.png',
     title: 'Water Reflection',
-    size: { width: 210, height: 260 },
+    size: { width: 210, height: 210 },
+    objectPosition: 'center top',
     link: '/tools/water-reflection',
   }),
 

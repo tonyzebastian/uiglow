@@ -18,7 +18,7 @@ export default function DrawingPage() {
   // Image Configuration
   const imageConfig = {
     urls: [
-      '/drawing_canvas.jpg',
+      '/thumbnails/drawing_canvas.jpg',
     ],
     size: 600,                        // Max width/height (maintains aspect ratio)
     padding: 5,                       // White padding around images (0 to disable)
