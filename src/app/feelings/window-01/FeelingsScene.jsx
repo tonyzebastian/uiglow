@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DialRoot, DialStore, useDialKit } from "dialkit";
-import AppHeader from "@/components/core/AppHeader";
+import AppHeader from "@/components/shared/AppHeader";
 import WebGLBackground from "./WebGLBackground";
 import WallBackground from "./WallBackground";
 import styles from "./FeelingsScene.module.css";
 
 export default function FeelingsScene() {
+  const [showControls, setShowControls] = useState(false);
   const controls = useDialKit(
     "Window 01 — art direction",
     {
@@ -46,7 +47,7 @@ export default function FeelingsScene() {
         pores: [1.57, 0, 2, .01],
         roomVariation: [.67, 0, 2, .01],
         cornerShadow: [2, 0, 2, .01],
-        wallWarmth: [.32, 0, 1.5, .01],
+        wallWarmth: [.20, 0, 1.5, .01],
       },
       ambientCanopy: {
         _collapsed: true,
@@ -98,6 +99,27 @@ export default function FeelingsScene() {
     DialStore.unregisterPanel("window-01-art-direction-v9");
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const togglesControls = (
+        event.ctrlKey
+        && event.altKey
+        && event.shiftKey
+        && event.code === "KeyW"
+      );
+
+      if (togglesControls) {
+        event.preventDefault();
+        setShowControls((visible) => !visible);
+      } else if (event.key === "Escape") {
+        setShowControls(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <main className={styles.page}>
       <div className={styles.header}>
@@ -105,7 +127,6 @@ export default function FeelingsScene() {
       </div>
 
       <div className={styles.gallery}>
-        <h1 className={styles.artworkTitle}>Evening Window</h1>
         <section className={styles.stage} aria-label="Evening Window shadow study">
           <WallBackground
             controls={controls.wall}
@@ -124,8 +145,22 @@ export default function FeelingsScene() {
             </div>
           </div>
         </section>
+        <section className={styles.caption} aria-labelledby="evening-window-title">
+          <h1 id="evening-window-title">Evening Window, July 2026</h1>
+          <p>
+            Late light drifts across a quiet wall, carrying the soft movement
+            of leaves beyond the window.
+          </p>
+          <div className={styles.devNotes}>
+            <h2>Dev notes.</h2>
+            <p>
+              Built with layered WebGL materials, animated shadow masks, and a
+              restrained Kuwahara finish.
+            </p>
+          </div>
+        </section>
       </div>
-      <DialRoot productionEnabled position="top-right" />
+      {showControls && <DialRoot productionEnabled position="top-right" />}
     </main>
   );
 }

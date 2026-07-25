@@ -1,4 +1,4 @@
-import CenteredPageLayout from '@/components/core/CenteredPageLayout';
+import CenteredPageLayout from '@/components/shared/CenteredPageLayout';
 import ImgStack from "./ImgStack"
 
 export const metadata = {

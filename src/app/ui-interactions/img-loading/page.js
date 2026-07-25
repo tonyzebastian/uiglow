@@ -1,5 +1,5 @@
 import ImageLoader from './ImageLoader'
-import CenteredPageLayout from "@/components/core/CenteredPageLayout"
+import CenteredPageLayout from "@/components/shared/CenteredPageLayout"
 
 export const metadata = {
   title: "Image Loading - UiGlow",

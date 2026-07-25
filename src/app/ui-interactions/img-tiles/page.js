@@ -1,4 +1,4 @@
-import CenteredPageLayout from '@/components/core/CenteredPageLayout';
+import CenteredPageLayout from '@/components/shared/CenteredPageLayout';
 import ImageReveal from "./ImgTile"
 
 export const metadata = {

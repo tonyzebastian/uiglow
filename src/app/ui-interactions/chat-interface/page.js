@@ -1,6 +1,6 @@
 import React from 'react';
 import ChatComponent from './ChatComponent';
-import CenteredPageLayout from "@/components/core/CenteredPageLayout";
+import CenteredPageLayout from "@/components/shared/CenteredPageLayout";
 
 export const metadata = {
   title: "Chat Interface - UiGlow",

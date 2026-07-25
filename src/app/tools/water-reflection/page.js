@@ -1,16 +1,16 @@
-import AppHeader from '@/components/core/AppHeader';
-import WaterReflectionStudio from './WaterReflectionStudio';
+import AppHeader from '@/components/shared/AppHeader';
+import ImageLabStudio from '@/features/image-lab/ImageLabStudio';
 
 export const metadata = {
-  title: 'Water Reflection Studio ✦ Tony',
-  description: 'Turn photographs into static, grainy water-reflection illustrations.',
+  title: 'Mosaic Image Lab ✦ Tony',
+  description: 'Compose mosaic, dither, and water-reflection image treatments.',
 };
 
 export default function WaterReflectionPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <AppHeader title="Water Reflection" />
-      <WaterReflectionStudio />
+    <main className="h-dvh overflow-hidden bg-background text-foreground">
+      <AppHeader title="Mosaic Image Lab" />
+      <ImageLabStudio />
     </main>
   );
 }

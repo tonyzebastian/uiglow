@@ -1,5 +1,5 @@
 import ImageSpotlight from "./ImageSpotlight"
-import CenteredPageLayout from "@/components/core/CenteredPageLayout"
+import CenteredPageLayout from "@/components/shared/CenteredPageLayout"
 
 export const metadata = {
   title: "Image Spotlight - UiGlow",

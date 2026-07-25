@@ -26,6 +26,8 @@ export default function DrawingToolbar({
   onColorChange,
   strokeWidth,
   onStrokeWidthChange,
+  imageSize,
+  onImageSizeChange,
 
   // View controls
   showImages,
@@ -82,15 +84,31 @@ export default function DrawingToolbar({
           max="20"
           value={strokeWidth}
           onChange={(e) => onStrokeWidthChange(parseInt(e.target.value))}
-          className="w-[150px] h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+          className="w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+          aria-label="Tip size"
           title={`Stroke width: ${strokeWidth}px`}
         />
+        <span className="text-sm text-slate-600 dark:text-slate-400">Tip</span>
       </div>
 
       <Separator orientation="vertical" className="h-8" />
 
       {/* Middle Section - View Controls */}
       <div className="flex items-center gap-4">
+        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <span>Image</span>
+          <input
+            type="range"
+            min="200"
+            max="1200"
+            step="10"
+            value={imageSize}
+            onChange={(e) => onImageSizeChange(parseInt(e.target.value, 10))}
+            className="w-24 h-2 cursor-pointer appearance-none rounded-lg bg-slate-200 dark:bg-slate-700"
+            aria-label="Image size"
+          />
+        </label>
+
         {/* Toggle Images */}
         <div className="flex items-center gap-2">
           <Switch
