@@ -5,6 +5,7 @@ const createGalleryCard = (id, overrides) => ({
   id,
   interactive: true,
   openInNewTab: false,
+  archived: false,
   ...overrides,
 });
 
@@ -24,7 +25,7 @@ const componentCard = (id, component, options) => createGalleryCard(id, {
   ...options,
 });
 
-export const galleryCards = [
+const galleryCatalog = [
   imageCard('fish', {
     content: '/thumbnails/fish.gif',
     title: 'A School of Fish',
@@ -53,7 +54,7 @@ export const galleryCards = [
 
   imageCard('mosaic', {
     content: '/thumbnails/mosaic.jpg',
-    title: 'Image Mosaic',
+    title: 'Mosaic Image Lab',
     size: { width: 250, height: 180 },
     link: '/tools/img-mosaic',
   }),
@@ -64,31 +65,11 @@ export const galleryCards = [
     link: '/tools/draw-canvas',
     openInNewTab: true,
   }),
-  imageCard('water-reflection', {
-    content: '/thumbnails/water_reflection_thumbnail.png',
-    title: 'Water Reflection',
-    size: { width: 210, height: 210 },
-    objectPosition: 'center top',
-    link: '/tools/water-reflection',
-  }),
-
   videoCard('img-stack', {
     content: '/thumbnails/image_stack.mp4',
     title: 'Image Stack',
     size: { width: 240, height: 170 },
     link: '/ui-interactions/img-stack',
-  }),
-  videoCard('img-tiles', {
-    content: '/thumbnails/imgtile.mp4',
-    title: 'Image Tiles',
-    size: { width: 240, height: 170 },
-    link: '/ui-interactions/img-tiles',
-  }),
-  videoCard('img-light', {
-    content: '/thumbnails/image_spotlight.mp4',
-    title: 'Image Light',
-    size: { width: 240, height: 170 },
-    link: '/ui-interactions/img-light',
   }),
   videoCard('img-sphere', {
     content: '/thumbnails/image_sphere.mp4',
@@ -96,23 +77,37 @@ export const galleryCards = [
     size: { width: 240, height: 170 },
     link: '/ui-interactions/img-sphere',
   }),
+  videoCard('img-tiles', {
+    content: '/thumbnails/imgtile.mp4',
+    title: 'Image Tiles',
+    size: { width: 240, height: 170 },
+    link: '/ui-interactions/img-tiles',
+  }),
   videoCard('img-loading', {
     content: '/thumbnails/img-loading.mp4',
     title: 'Image Loading',
     size: { width: 240, height: 170 },
     link: '/ui-interactions/img-loading',
   }),
+  videoCard('img-light', {
+    content: '/thumbnails/image_spotlight.mp4',
+    title: 'Image Light',
+    size: { width: 240, height: 170 },
+    link: '/ui-interactions/img-light',
+  }),
   videoCard('chat-interface', {
     content: '/thumbnails/chat.mp4',
     title: 'Chat Interface',
     size: { width: 240, height: 170 },
     link: '/ui-interactions/chat-interface',
+    archived: true,
   }),
   componentCard('vision-scene', 'VisionScene', {
     title: 'Vision Scene',
     size: { width: 240, height: 170 },
     link: '/ui-interactions/vision-scene',
     backgroundColor: '#faf5ff',
+    archived: true,
   }),
   componentCard('coinflip', 'CoinFlip', {
     title: 'Coin Flip',
@@ -127,3 +122,8 @@ export const galleryCards = [
     link: '/svg-animations/comethero',
   }),
 ];
+
+// Archived entries keep their route and gallery metadata for reference, but
+// are intentionally excluded from the public home gallery.
+export const galleryCards = galleryCatalog.filter((card) => !card.archived);
+export const archivedGalleryCards = galleryCatalog.filter((card) => card.archived);

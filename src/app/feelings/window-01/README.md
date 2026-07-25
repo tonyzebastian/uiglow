@@ -1,97 +1,73 @@
-# Window 01: projected window study
+# Window 01 — Evening Window
 
-`/feelings/window-01` is a real-time 2D/WebGL scene. It is not a video or a flattened composite: the browser rebuilds the wall, sunlight, shadows, texture, and movement every frame.
+`/feelings/window-01` is a real-time WebGL study of sunlight and moving foliage projected onto a painted wall. The stage is followed by a left-aligned caption set in the project’s Merriweather and Raleway fonts.
 
-The intended illusion is a window-shaped patch of sun projected onto a painted wall. The window, tree, and leaves are all **light blockers** within that same projection—not separate black drawings placed over the wall.
+## Render pipeline
 
-## Render stack
-
-There are two full-screen WebGL canvases:
+The scene uses two WebGL canvases and three fragment-shader programs:
 
 ```text
-1. WallBackground.jsx      opaque, full-page painted wall
-2. WebGLBackground.jsx     transparent projected-light canvas
-   └─ main composition pass → off-screen texture
-   └─ restrained Kuwahara post-process → screen
+WallBackground
+└─ wall material shader
+
+WebGLBackground
+├─ animated light-composition shader → framebuffer
+└─ Kuwahara post-process shader → transparent projection canvas
 ```
 
-The upper canvas is transparent wherever there is no projected light. That lets the wall shader continue naturally around the light rather than exposing a rectangular image edge.
+### 1. Wall material
 
-## 1. The wall
+`WallBackground.jsx` renders the opaque room surface.
 
-`WallBackground.jsx` creates the room surface behind everything else.
+- Layered noise creates paint variation, plaster, fibres, pores, and speckle.
+- `texture.jpg` is mirrored and tiled at its native scale to avoid visible seams.
+- Broad light pools and a lower-right occlusion give the wall spatial depth.
+- Exposure and Wall Warmth (`0.20` by default) are applied separately.
+- A procedural ambient canopy adds a soft moving shadow from the upper right.
+- Five drifting reflected-light flecks add a secondary path of warm light.
 
-- Its base palette is a restrained off-white, blue-grey, and mineral-shadow range sampled from the project’s Figma reference.
-- Broad, low-contrast light pools suggest ambient daylight bouncing around the room.
-- A large diagonal occlusion and a softer lower-right falloff keep the wall from being evenly lit.
-- Several scales of procedural noise create uneven paint, plaster, fibres, pores, and tiny speckle. These details are anchored to the wall, so they do not crawl across the screen.
-- `public/feelings/window 01/texture.jpg` is repeated at its native scale with **mirrored tiling**. Mirroring prevents the photograph’s edges from creating an obvious repeat seam.
-- A final neutral exposure pass holds back the upper brightness and darkens the lower wall without introducing a new colour cast.
+### 2. Animated blockers
 
-## 2. The projected light
+`WebGLBackground.jsx` prepares the light masks with off-screen 2D canvases before sending them to WebGL.
 
-`sunlightv2.png` is the source opening map.
+- `sunlightv2.png` supplies the window opening and panel bars.
+- Five branch PNGs sway from a shared upper-right pivot.
+- Sixteen leaf PNGs inherit branch motion, add slight flutter, and split into back and front depth groups.
+- Branch and leaf canvases are repainted at up to 30 fps.
+- Optional offset panel and branch shadows suggest a second light source.
+- The composed core and secondary light maps come from the same blocker stack, so overlapping branches and bars behave as one shadow system.
 
-- White means light can pass through.
-- Black means light is blocked.
-- The window bars and outer frame are painted into this map, so they are part of the source of the projection—not a separate opaque overlay.
+### 3. Projected-light shader
 
-The source map first becomes the clear **opening core**. Before anything is softened, the animated branch rig and leaf blockers are painted into it on an off-screen canvas. That canvas then produces two versions of this *single final composition*:
+The first shader in `WebGLBackground.jsx` turns the prepared masks into light.
 
-1. **Combined core** — retains a little definition in the bars and corners.
-2. **Combined soft map** — a real 42px canvas blur of that same composed image, creating the broad falloff of light hitting a wall.
+- Slow drift and low-frequency warp prevent rigid digital edges.
+- Core definition and feathering control the window silhouette.
+- Light moves from warm gold at thin edges toward near-white at its centre.
+- The photographed plaster is sampled again so the projection reveals wall relief.
+- Mottle, fibres, grain, and a restrained warm wash keep the light material.
+- Alpha is limited to the projection, allowing the wall shader to remain visible everywhere else.
 
-The final light mixes those two versions. This is crucial: the soft light cannot ignore the branches or leaves, because it is generated after they have been combined with the window opening. Using a true blur avoids the visible duplicate bars that a small number of wide shader samples can create. The colour of the light varies from warm golden at thinner edges toward a near-white centre. Slight noise, mottle, plaster absorption, and a weak broken reflection across the upper wall stop it reading as a perfectly uniform digital glow.
+### 4. Kuwahara pass
 
-## 3. One shared shadow map
+The projection is rendered to an off-screen framebuffer, then processed by a four-sector, 5×5 Kuwahara shader.
 
-The most important compositing rule is that a crossing shadow must not become artificially black.
+- The lowest-variance sector supplies a subtle painterly simplification.
+- The effect is stronger around foliage and reduced inside bright window openings.
+- Plaster relief and fine grain are restored after smoothing.
 
-The shader first calculates a single `unifiedShadow` value. These inputs all feed into it:
+## Art-direction controls
 
-- the main panel bars and their corners;
-- a faint, offset panel shadow, suggesting a second/bounced light source;
-- the top-right branch rig;
-- a subtler offset branch shadow;
-- the back and front animated leaf layers.
+DialKit controls the master projection, light, shadows, wall, ambient canopy, reflected flecks, post-production, and animation. The panel is intentionally hidden from public view.
 
-Those contributions are combined with `max()`, not layered alpha multiplication. In artist terms: the darkest blocker at a point wins. A branch crossing a bar therefore remains one physical shadow on the wall, rather than two transparent black drawings piled together. This blocker composition is applied to the opening **once**, before both the core and soft versions of the light are created.
-
-## 4. Branch and leaf movement
-
-The PNG artwork remains separate source material in `public/feelings/window 01/`.
-
-| Asset | Current use |
-| --- | --- |
-| `sunlightv2.png` | Window-shaped light opening and bar/frame blocker map. |
-| `new_scene/branch_01.png`–`branch_05.png` | Five branch layers, pivoted together from the upper-right corner of the opening. |
-| `new_scene/leaves_01.png`–`leaves_13.png` | Foliage layers assigned to a parent branch. They inherit that branch's sway, then add a small leaf flutter and are split between back and front depth groups. |
-| `texture.jpg` | Real photographed plaster texture used by both wall and light treatments. |
-| `background.png`, `window panels.png`, `sunlight.png` | Retained original artwork/reference assets; they are not separate live layers in the current render. |
-
-The five branch layers share an upper-right anchor but each has a distinct slow sway phase. Each leaf layer follows its assigned branch first, then receives only a tiny independent flutter. The complete rig is repainted to off-screen canvases at most about 30 times per second before being passed to WebGL as textures.
-
-## 5. Material inside the light
-
-The photographed plaster texture is sampled again in the projected-light shader. Its tone and local relief make the bright area reveal the wall’s surface instead of covering it with flat white. This detail is limited to bright opening areas, so it does not wash over the dark panel bars like another transparent layer.
-
-The main composition canvas also adds very restrained fibre, speckle, and a gentle warm wash only where projected light is present.
-
-## 6. Final post-production
-
-The completed projected-light canvas is first rendered to an off-screen framebuffer, then passed through a four-sector **Kuwahara** filter.
-
-- It examines four 4px neighbourhood sectors and chooses the calmest one, producing a subtle painterly simplification rather than a standard blur.
-- The effect is mixed at roughly 42% in open areas and can rise to 64% where the tree mask is present.
-- In bright window openings it is reduced to 20% of that strength, preserving the lightly defined panel corners.
-- Plaster relief and a fine post-grain are restored after smoothing so the effect does not make the wall look airbrushed.
-
-This is the scene’s whole-image post-production. It runs only on the transparent projection layer; the full wall has its own independent material shader underneath.
+- Toggle: `Control + Alt/Option + Shift + W`
+- Hide: press the same shortcut again or `Escape`
+- The panel uses the persistent id `window-01-art-direction-v10`.
 
 ## Key files
 
-- `page.js` — route entry for `/feelings/window-01`.
-- `FeelingsScene.jsx` — places the wall canvas and projected-light canvas in order.
-- `FeelingsScene.module.css` — full-viewport layout and responsive art framing.
-- `WallBackground.jsx` — wall palette, broad room lighting, procedural plaster, and tiled texture.
-- `WebGLBackground.jsx` — light opening, shared shadow map, animation canvases, framebuffer rendering, and Kuwahara post-process.
+- `FeelingsScene.jsx` — layout, caption, DialKit schema, and private shortcut.
+- `FeelingsScene.module.css` — responsive stage and repository typography.
+- `WallBackground.jsx` — wall material, canopy, and reflected-light shader.
+- `WebGLBackground.jsx` — animated masks, projection shader, framebuffer, and Kuwahara pass.
+- `public/feelings/window 01/` — plaster, opening, branch, and leaf assets.

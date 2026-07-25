@@ -7,5 +7,4 @@ export const navItems = [
     { label: "Image Sphere",    href: "/ui-interactions/img-sphere" },
     { label: "Image Loading", href: "/ui-interactions/img-loading" },
     { label: "Chat Interface", href: "/ui-interactions/chat-interface" },
-    { label: "Image Dither",   href: "/ui-interactions/img-dither" },
   ];

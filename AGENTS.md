@@ -142,9 +142,10 @@ Interactive infinite canvas showcasing all projects:
 
 ### 2. Content Sections
 - **Experiences**: Fish school, World clock, Car configurator
-- **UI Interactions**: 6 image manipulation demos + chat interface
+- **UI Interactions**: Interactive visual demos + chat interface
 - **SVG Animations**: Coin flip, Comet hero, Unlock
-- **Tools**: Drawing canvas, Image mosaic (standalone, no nav)
+- **Tools**: Drawing canvas and Mosaic Image Lab
+- **Mosaic Image Lab**: One GPU editor for mosaic, dither, water, cursor, print, palette, and export controls
 
 ### 3. Component Architecture
 - **Reusable**: Modular design with factory functions
@@ -215,6 +216,12 @@ imageCard('fish', {
 Two variants via `variant` prop:
 - **Primary**: Rounded pill, fixed top-center (home page)
 - **Secondary**: Full-width, bottom border (sub-pages with title)
+
+### Window 01 DialKit
+- `/feelings/window-01` keeps its art-direction DialKit hidden by default.
+- Toggle it with `Control + Alt/Option + Shift + W`; press the shortcut again or `Escape` to hide it.
+- Do not add a visible public affordance for these controls unless explicitly requested.
+- Keep this shortcut and `src/app/feelings/window-01/README.md` synchronized if the behavior changes.
 
 ### Error Boundary
 Locations:

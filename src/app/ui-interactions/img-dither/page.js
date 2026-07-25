@@ -1,15 +1,16 @@
-"use client";
+import AppHeader from "@/components/shared/AppHeader";
+import ImageLabStudio from "@/features/image-lab/ImageLabStudio";
 
-import DotGridImage from "./ImgDither";
-import CenteredPageLayout from "@/components/shared/CenteredPageLayout";
-import { useTheme } from "@/hooks/useTheme";
+export const metadata = {
+  title: "Mosaic Image Lab - UiGlow",
+  description: "Compose mosaic, dither, and water-reflection image treatments.",
+};
 
-export default function DotGrid() {
-  const { isDark } = useTheme();
-
+export default function ImageDitherPage() {
   return (
-    <CenteredPageLayout >
-      <DotGridImage darkMode={isDark} />
-    </CenteredPageLayout>
+    <main className="h-dvh overflow-hidden bg-background text-foreground">
+      <AppHeader title="Mosaic Image Lab" />
+      <ImageLabStudio />
+    </main>
   );
 }
