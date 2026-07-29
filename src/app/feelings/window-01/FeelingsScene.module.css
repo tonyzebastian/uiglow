@@ -125,6 +125,19 @@
     height: calc(100svh - 150px);
   }
 
+  .artworkColumn {
+    padding-inline: 16px;
+  }
+
+  .artwork {
+    /* The desktop projection is deliberately enlarged. On a narrow stage that
+       scale pushes the entire window beyond the clipped bounds. Size from the
+       available width instead, keeping the complete window in view. */
+    width: min(100%, 290px);
+    height: auto;
+    transform: scale(1) !important;
+  }
+
   .caption {
     padding-bottom: 56px;
   }
