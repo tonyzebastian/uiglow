@@ -51,6 +51,12 @@ const galleryCatalog = [
     size: { width: 280, height: 200 },
     link: '/experiences/slate-cars',
   }),
+  videoCard('evening-window', {
+    content: '/thumbnails/evening_window.mp4',
+    title: 'Evening Window, July 2026',
+    size: { width: 280, height: 200 },
+    link: '/feelings/window-01',
+  }),
 
   imageCard('mosaic', {
     content: '/thumbnails/mosaic.jpg',
